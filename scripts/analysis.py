@@ -1,3 +1,7 @@
+# Calculate based on nifti data.
+# Input file format: *.nii.gz (output format: *.nii)
+# the result file(*.nii) should be convert to *.mgh/mgz for visualisation by pysurfer
+
 import nibabel as nib
 import numpy as np
 import os

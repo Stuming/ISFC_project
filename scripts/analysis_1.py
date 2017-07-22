@@ -1,3 +1,7 @@
+# Calculate based on mgh data.
+# Input file format: *.mgh (output format: *.mgh)
+# the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
+
 import nibabel as nib
 import numpy as np
 import os
