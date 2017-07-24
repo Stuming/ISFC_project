@@ -15,31 +15,27 @@ filename="fmcpr.up.sm0.fsaverage.lh.mgh" # Do analysis after mri_convert
 
 
 for sessid1 in sessidlist:
-# sessid1="S001"
-# if 1==1:
+#sessid1="S001"
+#if 1==1:
     for r in range(1,2):
         i=0 # count sess number
+        avg_data=0 # init data
+
         runid=str(r)
         while len(runid)<3:
             runid="0"+runid
-
         f1=load_file(datadir, sessid1, funcname, runid, filename)
-        avg_data=0 # init data
 
         for sessid_temp in sessidlist:
             if sessid1 == sessid_temp:
                 continue
-            print("add "+sessid_temp)
+            print("add "+sessid_temp+" run "+runid)
 
-            f3=load_file(datadir, sessid_temp, funcname, runid, filename)
-            if not match_datashape(f1,f3):
+            f2=load_file(datadir, sessid_temp, funcname, runid, filename)
+            if not match_datashape(f1,f2):
                 exit(0)
 
-            if isinstance(avg_data,int): 
-                # check data type to make sure avg_data is not empty.
-                avg_data=f3.get_data()
-                continue
-            avg_data=avg_data+f3.get_data()
+            avg_data=avg_data+f2.get_data()
             i=i+1
 
         avg_data=avg_data/i
