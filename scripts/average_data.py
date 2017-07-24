@@ -13,9 +13,12 @@ sessidlist=["S001", "S002", "S003", "S004", "S005", "S006", "S009", "S010", "S01
 funcname="bold"
 filename="fmcpr.up.sm0.fsaverage.lh.mgh" # Do analysis after mri_convert
 
-# sessid1="S001"
+
 for sessid1 in sessidlist:
+# sessid1="S001"
+# if 1==1:
     for r in range(1,2):
+        i=0 # count sess number
         runid=str(r)
         while len(runid)<3:
             runid="0"+runid
@@ -36,8 +39,10 @@ for sessid1 in sessidlist:
                 # check data type to make sure avg_data is not empty.
                 avg_data=f3.get_data()
                 continue
-            avg_data=(avg_data+f3.get_data())/2
+            avg_data=avg_data+f3.get_data()
+            i=i+1
 
+        avg_data=avg_data/i
         avg_data_path="avg_data_except_"+sessid1+"_"+runid+".mgh" # means average all data except sessid1, then use it cal ISFC/ISC with sessid1.
         avg_data_mgh=nib.MGHImage(avg_data,f1.get_affine())
         nib.save(avg_data_mgh,avg_data_path)
