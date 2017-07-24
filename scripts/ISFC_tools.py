@@ -80,6 +80,6 @@ def save_result(method_name,result_f,sessid,trg_sessid,runid,vertex_num):
     # result_f means result should pass over as file format such as .mgh.
     # trg_sessid used to distinguish which data was used to cal ISFC/ISC with sessid.
 
-    result_path=method_name+"_"+sessid+"_"+trg_sessid+"_"+"run"+runid+"_"+str(vertex_num)+".mgh"
+    result_path=method_name+"_"+sessid+"_"+trg_sessid+"_"+runid+"_"+str(vertex_num)+".mgh"
     nib.save(result_f,result_path)
 
