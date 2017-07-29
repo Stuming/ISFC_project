@@ -20,8 +20,9 @@ def show_shape(datadir,sessid,funcname,filename):
         print(runid+": ")
         print(f1.get_shape())
 
-def cal_ISFC(data1,data2,vertex,shape):
-    i1=vertex
+# TODO merge cal_ISFC, cal_ISC, cal_FC into one function.
+def cal_ISFC(data1,data2,vertex_num,shape):
+    i1=vertex_num
     result=np.zeros((shape[0],1,1))
     temp1=array.array('f')
     temp1.fromlist(data1[i1,0,0,:].tolist()) # np.corrcoef need array as input
@@ -46,6 +47,21 @@ def cal_ISC(data1,data2,shape):
         temp1.fromlist(data1[i,0,0,:].tolist()) # np.corrcoef need array as input
         temp2=array.array('f')
         temp2.fromlist(data2[i,0,0,:].tolist())
+        print(i)
+        result[i,0,0]=np.corrcoef(temp1,temp2)[0,1] # Get corrcoef from corr matrix
+        if np.isnan(result[i,0,0]):
+            result[i,0,0]=0 # Or use mri_convert to finish this
+    return(result)
+
+def cal_FC(data,vertex_num,shape):
+    result=np.zeros((shape[0],1,1))
+
+    temp1=array.array('f')
+    temp1.fromlist(data[vertex_num,0,0,:].tolist()) # np.corrcoef need array as input
+
+    for i in range(0,shape[0]):
+        temp2=array.array('f')
+        temp2.fromlist(data[i,0,0,:].tolist())
         print(i)
         result[i,0,0]=np.corrcoef(temp1,temp2)[0,1] # Get corrcoef from corr matrix
         if np.isnan(result[i,0,0]):
