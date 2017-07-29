@@ -35,7 +35,7 @@ for sessid in sessidlist:
         i=i+1
 
     avg_run=avg_run/i
-    avg_run_path="avg_"+method_name+"_"+sessid+".mgh" # means average all data of sessid.
+    avg_run_path="avg_result/avg_"+method_name+"_"+sessid+"_"+trg_sessid+"_"+str(vertex_num)+".mgh" # means average all data of sessid.
     avg_run_f=nib.MGHImage(avg_run,result_run.get_affine())
     nib.save(avg_run_f,avg_run_path)
     print("Finish saving "+avg_run_path)
