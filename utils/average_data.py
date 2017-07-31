@@ -17,7 +17,7 @@ filename="fmcpr.up.sm0.fsaverage.lh.mgh" # Do analysis after mri_convert
 for sessid1 in sessidlist:
 #sessid1="S001"
 #if 1==1:
-    for r in range(1,2):
+    for r in range(1,9):
         i=0 # count sess number
         avg_data=0 # init data
 

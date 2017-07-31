@@ -17,7 +17,7 @@ for sessid in sessidlist:
 #sessid="S001"
 #if 1==1:
     for runid in runidlist:
-        method_name="ISC"
+        method_name="ISFC"
         vertex_num=86217
         outfmt="mgh"
         brain=Brain("fsaverage","lh","inflated",views=["lat","med"],subjects_dir=Subjectdir)
