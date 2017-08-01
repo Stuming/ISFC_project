@@ -1,5 +1,4 @@
-# NSNT
----
+# NSNT  
 Natural Stimulus Neuroimaging Toolbox(NSNT) is aimed to provide toolbox 
 to analysis fMRI data which was induced by natural stimulus.
 
