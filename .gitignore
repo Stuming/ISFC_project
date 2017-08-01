@@ -1,3 +1,4 @@
+*.py~
 *.pyc
 /scripts/*
 /results/*
