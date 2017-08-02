@@ -1,29 +1,36 @@
 import nibabel as nib
-import numpy as np
 import os
 
 # TODO specify this function
 # TODO def load_file(filepath):
 
 
-def load_file(datadir, sessid, funcname, runid, filename):
-    rundatadir = os.path.join(datadir,sessid,funcname,runid)
-    filepath = os.path.join(rundatadir,filename)
+def load_imgfile(filepath):
+    """Load brain image file, the postfix should be one of ('mgz','mgh','nii','nii.gz')."""
     if not os.path.isfile(filepath):
-        print(filepath+" is not a file path, please check!")
-        exit(0)
-
-    f=nib.load(filepath)
+        raise Exception("File does not exist, please check the path: %s" % filepath)
+    if not os.path.basename(filepath).endswith(("mgz","mgh","nii","nii.gz")):
+        raise Exception("File suffix should be one of ('mgz','mgh','nii','nii.gz').")
+    f = nib.load(filepath)
     return(f)
 
 
+def load_textfile(filepath):
+    """Load text like file, such as global.waveform.dat.
+    """
+    if not os.path.isfile(filepath):
+        raise Exception("File does not exist, please check path: %s" % filepath)
+    f = open(filepath, "r")
+    data = f.readlines()
+    f.close()
+    return (data)
+
+
 # TODO specify this function
-# TODO def save_result(result_f,filename):
-def save_result(method_name, result_f, sessid, trg_sessid, runid, vertex_num):
-    # method_name refer to "ISFC", "ISC".
-    # result_f means result should pass over as file format such as .mgh.
-    # trg_sessid used to distinguish which data was used to cal ISFC/ISC with sessid.
-    filename = method_name+"_"+sessid+"_"+trg_sessid+"_"+runid+"_"+str(vertex_num)+".mgh"
-    file_path = os.path.join("result",filename)
-    nib.save(result_f,file_path)
-    print("Saving "+file_path+" is done.")
+def save_img(data_dir, data_type, filename, data, affine):
+    """Save data into data_dir/data_type/filename.
+    Data is saved as nifti format."""
+    filepath = os.path.join(data_dir, data_type, filename)
+    data_file = nib.Nifti1Image(data, affine)
+    nib.save(data_file, filepath)
+    print("Saving %s" % filepath)

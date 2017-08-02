@@ -1,29 +1,26 @@
 # Calculate based on mgh data.
 # Input file format: *.mgh (output format: *.mgh)
 # the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
-
-import nibabel as nib
+from scipy import stats
 import numpy as np
-import os
-import array
-from algorithms.calculation import cal_ISFC, cal_ISC, cal_FC
+from array import array
+from algorithms.nsnt_fctools import isfc, isc, fc
 
 
-# TODO merge cal_ISFC, cal_ISC, cal_FC into one function.
 # TODO get shape from data, or change data to loaded file.
 # TODO check input.
 # TODO this function's input need to be specified.
-def do_cal(method_name,data1,shape,data2=None,vertex_num=None):
-    """The shape of data1 and data2(if exist) should be same."""
+def nsnt_fc(method_name, data1, shape, data2=None, vertex_num=None):
+    """The shape of data1 and data2(if exist) should be same.
+    method_name: 'ISFC', 'ISC', or 'FC'."""
     if method_name=="ISFC":
-        return(cal_ISFC(data1,data2,vertex_num,shape))
+        return(isfc(data1, data2, vertex_num, shape))
     elif method_name=="ISC":
-        return(cal_ISC(data1,data2,shape))
+        return(isc(data1, data2, shape))
     elif method_name=="FC":
-        return(cal_FC(data1,vertex_num,shape))
+        return(fc(data1, vertex_num, shape))
     else:
-        print("Wrong input, please check out.")
-        exit(0)
+        raise Exception("Wrong input, please check out.")
 
 
 def match_datashape(f1,f2):
@@ -36,3 +33,28 @@ def match_datashape(f1,f2):
     print(f2.get_filename())
     return(0)
 
+
+def corr(array1, array2, method_name="pearson"):
+    """Calculate correlation between array1 and array2.
+    array1, array2: should be 1-D array, output from nsnt.utils.data_to_array()
+    method_name: "pearson" or "spearman" correlation
+    If correlation coefficient is nan, then make it 0."""
+    if method_name == "pearson":
+        r, pval = stats.pearsonr(array1,array2)
+    elif method_name == "spearman":
+        r, pval =stats.spearmanr(array1,array2)
+    else:
+        raise Exception("Wrong method name.")
+    if np.isnan(r):
+        r = 0
+    return(r)
+
+
+def data_to_array(data, i, j=0, k=0):
+    """Convert the format(memmap) of the data got from nib.get_data() into array.
+    Output is sequence data of index(i,j,k), as array format.
+    data: got from nib.get_data();
+    i, j, k: the index of data, should be settled based on the data dimension."""
+    data_array = array('f')
+    data_array.fromlist(data[i,j,k,:].tolist())
+    return(data_array)

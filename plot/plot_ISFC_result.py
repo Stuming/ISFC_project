@@ -2,8 +2,6 @@
 
 import nibabel as nib
 from surfer import Brain
-import numpy as np
-import os
 
 
 Subjectdir = "/usr/local/freesurfer/subjects"
@@ -15,8 +13,8 @@ funcname = "bold"
 
 # TODO change it into function and opt it.
 for sessid in sessidlist:
-#sessid="S001"
-#if 1==1:
+# sessid="S001"
+# if 1==1:
     for runid in runidlist:
         method_name = "ISFC"
         vertex_num = 86217
