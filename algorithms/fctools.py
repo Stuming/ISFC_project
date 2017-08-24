@@ -15,13 +15,13 @@ def isfc(data1, data2, vertex_num, shape):
     data1, data2: brain image data.
     vertex_num: the vertex in data1 used to cal isfc.
     shape: the shape of data1 and data2 should be the same."""
-    result = np.zeros((shape[0],1,1))
-    array1 = data_to_array(data1,vertex_num)  # TODO this only match mgh format, not match nifti.
+    result = np.zeros((shape[0], 1, 1))
+    array1 = data_to_array(data1, vertex_num)  # TODO this only match mgh format, not match nifti.
 
     for i in range(0,shape[0]):
-        array2 = data_to_array(data2,i)
-        result[i,0,0] = corr(array1,array2)
-    return(result)
+        array2 = data_to_array(data2, i)
+        result[i, 0, 0] = corr(array1, array2)
+    return result
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
@@ -29,13 +29,13 @@ def isc(data1, data2, shape):
     """Cal ISC between data1 and data2 vertex by vertex.
     data1, data2: brain image data.
     shape: the shape of data1 and data2 should be the same."""
-    result = np.zeros((shape[0],1,1))
+    result = np.zeros((shape[0], 1, 1))
 
-    for i in range(0,shape[0]):
-        array1 = data_to_array(data1,i)
-        array2 = data_to_array(data2,i)
-        result[i,0,0] = corr(array1,array2)
-    return(result)
+    for i in range(0, shape[0]):
+        array1 = data_to_array(data1, i)
+        array2 = data_to_array(data2, i)
+        result[i, 0, 0] = corr(array1, array2)
+    return result
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
@@ -44,10 +44,10 @@ def fc(data, vertex_num, shape):
     data: brain image data.
     vertex_num: the vertex in data1 used to cal isfc.
     shape: the shape of input data."""
-    result = np.zeros((shape[0],1,1))
-    array1 = data_to_array(data,vertex_num)
+    result = np.zeros((shape[0], 1, 1))
+    array1 = data_to_array(data, vertex_num)
 
-    for i in range(0,shape[0]):
-        array2 = data_to_array(data,i)
-        result[i,0,0] = corr(array1,array2)
-    return(result)
+    for i in range(0, shape[0]):
+        array2 = data_to_array(data, i)
+        result[i, 0, 0] = corr(array1, array2)
+    return result

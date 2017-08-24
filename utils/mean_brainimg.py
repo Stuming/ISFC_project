@@ -13,7 +13,7 @@ def avg_data_pr(projectdir, sessidlist, runlist, method_name, trg_sessid, vertex
         avg_run = 0
 
         for runid in runlist:
-            filename = method_name+"_"+sessid+"_"+trg_sessid+"_"+runid+"_"+str(vertex_num)+outfmt
+            filename = "%s_%s_%s_%s_%s%s" % (method_name, sessid, trg_sessid, runid, str(vertex_num), outfmt)
             filepath = os.path.join(projectdir,filename)
             result_run = load_imgfile(filepath)
             avg_run = avg_run + result_run.get_data()
@@ -23,6 +23,6 @@ def avg_data_pr(projectdir, sessidlist, runlist, method_name, trg_sessid, vertex
 
         data_dir = "./"
         data_type = "avg_result"
-        result_name = "avg_"+method_name+"_"+sessid+"_"+trg_sessid+"_"+str(vertex_num)+outfmt
+        result_name = "avg_%s_%s_%s_%s%s" % (method_name, sessid, trg_sessid, str(vertex_num), outfmt)
 
         save_img(data_dir, data_type, result_name, avg_run, result_run.get_affine())

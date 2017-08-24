@@ -2,7 +2,7 @@ import nibabel as nib
 import os
 
 # TODO specify this function
-# TODO def load_file(filepath):
+# TODO def load_file(filepath): load file based on postfix
 
 
 def load_imgfile(filepath):
@@ -12,18 +12,16 @@ def load_imgfile(filepath):
     if not os.path.basename(filepath).endswith(("mgz","mgh","nii","nii.gz")):
         raise Exception("File suffix should be one of ('mgz','mgh','nii','nii.gz').")
     f = nib.load(filepath)
-    return(f)
+    return f
 
 
 def load_textfile(filepath):
-    """Load text like file, such as global.waveform.dat.
-    """
+    """Load text like file, such as global.waveform.dat. """
     if not os.path.isfile(filepath):
         raise Exception("File does not exist, please check path: %s" % filepath)
-    f = open(filepath, "r")
-    data = f.readlines()
-    f.close()
-    return (data)
+    with open(filepath, "r") as f:
+        data = f.readlines()
+    return data
 
 
 # TODO specify this function
