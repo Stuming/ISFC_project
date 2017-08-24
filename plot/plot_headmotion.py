@@ -2,7 +2,7 @@
 import matplotlib.pyplot as plt
 
 
-def plot_headmotion(mcdat):
+def plot_headmotion(mcdat, figshow=True, savefig=False, savepath=None):
     """fmcpr.mcdat are the motion estimates(mm and degrees).
     mcprextreg is the motion correction parameters after analysis using a PCA.
     fmcpr.mcdat data looks like this:
@@ -22,7 +22,13 @@ def plot_headmotion(mcdat):
     plot_displacement(dS, dL, dP)
     plt.subplot(2,1,2)
     plot_rotation(a, b, c)
-    plt.show()
+    if figshow:
+        plt.show()
+
+    # TODO save figure should be refactored into iofunc
+    if savefig and savepath is not None:
+        plt.savefig(savepath)
+    plt.clf()
 
 
 def get_para(mcdat, index):
