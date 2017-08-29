@@ -5,7 +5,7 @@ import os
 
 
 def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save_path=None,
-                  sessid=None, runid=None, update=False):
+                  title_id=None, update=False):
     """Plot waveform and meanval(optional).
     Parameters:
         wave_data: load file that contains waveform.
@@ -14,8 +14,7 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
         x_min: set start(%) for displaying meanval.
         x_max: set end(%) for displaying meanval.
         save_path: default is None, set a path to it to save figure into this file path.
-        sessid: session id of figure, used in figure title.
-        runid: run id of figure, used in figure title.
+        title_id: default is None, used to specify the image in figure title.
         update: default is False, means if save_path exists, figure will not be saved.
 
     Examples:
@@ -30,13 +29,10 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
         meanval = [num.rstrip("\n") for num in meanval]
         plt.axhline(meanval, xmin=x_min, xmax=x_max, color='r')
 
-    if sessid is not None:
-        if runid is not None:
-            plt.title("Global waveform %s %s" % (sessid, runid))
-        else:
-            plt.title("Global waveform $s" % sessid)
+    if title_id is not None:
+        plt.title("Waveform $s" % title_id)
     else:
-        plt.title("Global waveform")
+        plt.title("Waveform")
 
     if fig_show:
         plt.show()

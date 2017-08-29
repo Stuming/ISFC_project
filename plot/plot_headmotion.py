@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import os
 
 
-def plot_headmotion(mcdat, fig_show=True, save_path=None, update=False):
+def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=False):
     """fmcpr.mcdat are the motion estimates(mm and degrees).
     mcprextreg is the motion correction parameters after analysis using a PCA.
     fmcpr.mcdat data looks like this:
@@ -17,6 +17,7 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, update=False):
         mcdat: load file that contains motion estimates. Like: fmcpr.mcdat
         fig_show: default is True, set it to False to skip showing figure.
         save_path: default is None, set a path to it to save figure into this file path.
+        title_id: default is None, used to specify the image in figure title.
         update: default is False, means if save_path exists, figure will not be saved.
 
     Examples:
@@ -32,6 +33,12 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, update=False):
     b = get_para(mcdat, 2)
     c = get_para(mcdat, 3)
     plt.subplot(2,1,1)
+
+    if title_id is not None:
+        plt.title("Head motion $s" % title_id)
+    else:
+        plt.title("Head motion")
+
     plot_displacement(dS, dL, dP)
     plt.subplot(2,1,2)
     plot_rotation(a, b, c)
@@ -77,9 +84,9 @@ def plot_displacement(x, y, z):
     plt.plot(x, color="blue", label="dS", hold=True)
     plt.plot(y, color="green", label="dL")
     plt.plot(z, color="red", label="dP")
-    plt.title("translation")
-    plt.xlabel("image")
-    plt.ylabel("mm")
+    # plt.title(""translation)
+    # plt.xlabel("image")
+    plt.ylabel("translation(mm)")
     plt.legend(loc=0)  # choose legend position automatically
 
 
@@ -91,7 +98,7 @@ def plot_rotation(a, b, c):
     plt.plot(a, color="blue", label="roll", hold=True)
     plt.plot(b, color="green", label="pitch")
     plt.plot(c, color="red", label="yaw")
-    plt.title("rotation")
+    # plt.title("rotation")
     plt.xlabel("image")
-    plt.ylabel("degrees")
+    plt.ylabel("rotation(degrees)")
     plt.legend(loc=0)
