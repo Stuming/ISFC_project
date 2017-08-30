@@ -65,8 +65,8 @@ def check_list(list_data):
     which should be striped.
     If waveform get from calculation, then element in list would be a number, and just return it.
     """
-    if type(list_data) is "list":
+    if isinstance(list_data, list):
         num = list_data[0]
-        if type(num) is "str":
+        if isinstance(num, str):
             list_data = [num.rstrip("\n") for num in list_data]
     return list_data
