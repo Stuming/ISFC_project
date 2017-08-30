@@ -58,3 +58,15 @@ def data_to_array(data, i, j=0, k=0):
     data_array = array('f')
     data_array.fromlist(data[i,j,k,:].tolist())
     return data_array
+
+
+def check_list(list_data):
+    """ Check list_data's type, if waveform read from file, then element in list would be string and have "\n",
+    which should be striped.
+    If waveform get from calculation, then element in list would be a number, and just return it.
+    """
+    if type(list_data) is "list":
+        num = list_data[0]
+        if type(num) is "str":
+            list_data = [num.rstrip("\n") for num in list_data]
+    return list_data

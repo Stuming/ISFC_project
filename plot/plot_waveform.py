@@ -1,7 +1,8 @@
 """Use matplot lib plot global mean waveform of raw function data.
 In order to check data."""
-import matplotlib.pyplot as plt
 import os
+import matplotlib.pyplot as plt
+from utils.utils import check_list
 
 
 def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save_path=None,
@@ -22,15 +23,15 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
             plot_waveform(wave_data)
         If you want to save figure into file, input should specify fig_path.
             plot_waveform(wave_data, meanval=meanval, save_path=filepath, update=True)"""
-    # TODO should check wave_data's type.
-    plt.plot([num.rstrip("\n") for num in wave_data], hold=True)
+    wave_data = check_list(wave_data)
+    plt.plot(wave_data, hold=True)
 
     if meanval is not None:
-        meanval = [num.rstrip("\n") for num in meanval]
+        meanval = check_list(meanval)
         plt.axhline(meanval, xmin=x_min, xmax=x_max, color='r')
 
     if title_id is not None:
-        plt.title("Waveform $s" % title_id)
+        plt.title("Waveform %s" % title_id)
     else:
         plt.title("Waveform")
 
