@@ -35,15 +35,15 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
     else:
         plt.title("Waveform")
 
-    if fig_show:
-        plt.show()
-
     # TODO save figure should be refactored into iofunc
     if save_path is not None:
         if os.path.exists(save_path) and not update:
             print("Not updated: %s exists, figure is not saved." % save_path)
         else:
             plt.savefig(save_path)
+
+    if fig_show:
+        plt.show()
 
     plt.clf()
 

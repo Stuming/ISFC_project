@@ -1,6 +1,6 @@
 """Plot head motion parameters in SPM style."""
-import matplotlib.pyplot as plt
 import os
+import matplotlib.pyplot as plt
 
 
 def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=False):
@@ -42,8 +42,6 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=
     plot_displacement(dS, dL, dP)
     plt.subplot(2,1,2)
     plot_rotation(a, b, c)
-    if fig_show:
-        plt.show()
 
     # TODO save figure should be refactored into iofunc
     if save_path is not None:
@@ -51,6 +49,9 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=
             print("Not updated: %s exists, figure is not saved." % save_path)
         else:
             plt.savefig(save_path)
+
+    if fig_show:
+        plt.show()
 
     plt.clf()
 
