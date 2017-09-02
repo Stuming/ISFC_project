@@ -6,8 +6,8 @@ to analysis fMRI data which was induced by natural stimulus.
 # TODO List
 ### algorithms  
 Undertake major calculation.  
-Main function:<br>
-~~1. Cal ISFC, ISC, FC and others.~~<br>
+Main function:
+1. Cal ISFC, ISC, FC and others.
 2. Cal info of data and result, like global waveform.
 
 ### io  
@@ -18,15 +18,15 @@ Main function:
 3. Read result.
 4. Save image into file.
 5. Save movie into file.
+6. Create label by vertex or index(based on atlas).
+7. Read data by label.
 
 ### plot  
 Plot image based on defferent input arg.  
 Main function:
-1. plot brain map.<br>
-2. plot ROI map.<br>
-~~3. plot global waveform and meanval.~~<br>
-~~4. plot head motion parameters.~~<br>
-
+1. plot brain map.
+2. plot global waveform and meanval.
+3. plot head motion parameters.
 
 ### utils  
 Provide small but necessary function.  
