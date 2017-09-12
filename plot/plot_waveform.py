@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from utils.utils import check_list
 
 
-def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save_path=None,
+def plot_waveform(wave_data, meanval=None, fig_show=True, color='b', x_min=0, x_max=1, save_path=None,
                   title_id=None, update=False):
     """Plot waveform and meanval(optional).
     Parameters:
@@ -24,11 +24,11 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
         If you want to save figure into file, input should specify fig_path.
             plot_waveform(wave_data, meanval=meanval, save_path=filepath, update=True)"""
     wave_data = check_list(wave_data)
-    plt.plot(wave_data, hold=True)
+    plt.plot(wave_data, hold=True, color=color)
 
     if meanval is not None:
         meanval = check_list(meanval)
-        plt.axhline(meanval, xmin=x_min, xmax=x_max, color='r')
+        plt.axhline(meanval, xmin=x_min, xmax=x_max, color=color)
 
     if title_id is not None:
         plt.title("Waveform %s" % title_id)
@@ -41,6 +41,7 @@ def plot_waveform(wave_data, meanval=None, fig_show=True, x_min=0, x_max=1, save
             print("Not updated: %s exists, figure is not saved." % save_path)
         else:
             plt.savefig(save_path)
+            print("Save fig: %s" % save_path)
 
     if fig_show:
         plt.show()
