@@ -1,4 +1,6 @@
 *.py~
 *.pyc
-/scripts/*
-/results/*
+scripts/*
+results/*
+.idea/*
+
