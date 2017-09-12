@@ -25,7 +25,7 @@ def corr(array1, array2, method_name="pearson"):
     if method_name == "pearson":
         r, pval = stats.pearsonr(array1,array2)
     elif method_name == "spearman":
-        r, pval =stats.spearmanr(array1,array2)
+        r, pval = stats.spearmanr(array1,array2)
     else:
         raise Exception("Wrong method name.")
     if np.isnan(r):

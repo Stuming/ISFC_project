@@ -1,8 +1,8 @@
 """Display value info about data."""
 
 
-def data_info(f_img):
-    """Get info about data in f_img, and f_img should be got from nib.load()"""
+def data_stats(f_img):
+    """Print stats about data in f_img, and f_img should be got from nib.load()"""
     # f.get_data()  std(), min(), max(), mean(), argmax(), any()
     data = f_img.get_data()
     print("Data shape: " + str(f_img.get_shape()))

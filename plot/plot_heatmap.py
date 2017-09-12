@@ -12,4 +12,3 @@ def plot_heatmap(filepath):
     
     brain = Brain('fsaverage', 'lh', 'inflated')
     brain.add_data(result[:,0,0])
-
