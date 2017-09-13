@@ -23,11 +23,11 @@ def corr(array1, array2, method_name="pearson"):
     method_name: "pearson" or "spearman" correlation
     If correlation coefficient is nan, then make it 0."""
     if method_name == "pearson":
-        r, pval = stats.pearsonr(array1,array2)
+        r, pval = stats.pearsonr(array1, array2)
     elif method_name == "spearman":
-        r, pval = stats.spearmanr(array1,array2)
+        r, pval = stats.spearmanr(array1, array2)
     else:
-        raise Exception("Wrong method name.")
+        raise Exception("Wrong correlation method name: %s." % method_name)
     if np.isnan(r):
         r = 0
     return r
