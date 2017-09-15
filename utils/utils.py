@@ -1,6 +1,7 @@
 # Calculate based on mgh data.
 # Input file format: *.mgh (output format: *.mgh)
 # the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
+import os
 from scipy import stats
 import numpy as np
 from array import array
@@ -53,3 +54,18 @@ def check_list(list_data):
         if isinstance(num, str):
             list_data = [num.rstrip("\n") for num in list_data]
     return list_data
+
+
+def check_dir(dirpath, new=True):
+    """Check whether dirpath exists, and create it if needed.
+    dirpath: input path used to check.
+    new: make dir if not exists.
+    :return: 0 for dir not exists(not found or not created)
+             1 for dir exists."""
+    if not os.path.exists(dirpath):
+        if not new:
+            print("%s is not found." % dirpath)
+            return 0
+        print ("Creating dir: %s" % dirpath)
+        os.makedirs(dirpath)
+    return 1

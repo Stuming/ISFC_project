@@ -20,6 +20,7 @@ Main function:
 5. Save movie into file.
 6. Create label by vertex or index(based on atlas).
 7. Read data by label.
+8. Specify io function in every file.
 
 ### plot  
 Plot image based on defferent input arg.  
