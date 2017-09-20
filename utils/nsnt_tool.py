@@ -2,7 +2,7 @@
 # TODO check input.
 # TODO this function's input need to be specified.
 import numpy as np
-from algorithms.fctools import isfc, isc, fc
+from algorithms.fctools import isfc, isc, wsfc
 
 
 def nsnt_fc(method_name, data1, shape, data2=None, vertex_num=None):
@@ -11,10 +11,10 @@ def nsnt_fc(method_name, data1, shape, data2=None, vertex_num=None):
     """
     # TODO find a way to avoid corr([0,0],[0,0])
     if method_name == "ISFC":
-        return isfc(data1, data2, vertex_num, shape)
+        return isfc(data1, data2)
     elif method_name == "ISC":
         return isc(data1, data2, shape)
-    elif method_name == "FC":
-        return fc(data1, vertex_num, shape)
+    elif method_name in ["FC", "WSFC"]:
+        return wsfc(data1, vertex_num)
     else:
         raise Exception("Wrong input, please check out.")

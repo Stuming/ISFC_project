@@ -6,22 +6,20 @@ isc: Inter-subject correlation.
 fc: Functional correlation.
 """
 import numpy as np
+from scipy.spatial.distance import cdist, pdist
 from utils.utils import corr, data_to_array
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
-def isfc(data1, data2, vertex_num, shape):
-    """Cal ISFC between vertex_num in data1 and all vertexs in data2.
-    data1, data2: brain image data.
-    vertex_num: the vertex in data1 used to cal isfc.
-    shape: the shape of data1 and data2 should be the same."""
-    result = np.zeros((shape[0], 1, 1))
-    array1 = data_to_array(data1, vertex_num)  # TODO this only match mgh format, not match nifti.
-
-    for i in range(0,shape[0]):
-        array2 = data_to_array(data2, i)
-        result[i, 0, 0] = corr(array1, array2)
-    return result
+def isfc(data1, data2):
+    """Cal ISFC between data1 and data2.
+    data1, data2: matrix data, if data1 or data2 is 1-dimensional, then change it to 2-dimensional data.
+    """
+    if data1.shape == 1:
+        data1 = np.array(data1, ndmin=2)
+    if data2.shape == 1:
+        data2 = np.array(data2, ndmin=2)
+    return 1 - cdist(data1, data2, metric='correlation')
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
@@ -39,15 +37,15 @@ def isc(data1, data2, shape):
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
-def fc(data, vertex_num, shape):
-    """Cal functional connectivity between vertex_num and other vertex in data.
+def wsfc(data, vertex_num=None):
+    """Cal within subject functional connectivity of data.
     data: brain image data.
-    vertex_num: the vertex in data1 used to cal isfc.
-    shape: the shape of input data."""
-    result = np.zeros((shape[0], 1, 1))
-    array1 = data_to_array(data, vertex_num)
-
-    for i in range(0, shape[0]):
-        array2 = data_to_array(data, i)
-        result[i, 0, 0] = corr(array1, array2)
-    return result
+    vertex_num: the vertex in data1 used to cal isfc, default is None, means cal fc matrix.
+    """
+    if not data.shape == 2:
+        raise Exception("Input should be 2-dimension, not %i." % data.shape)
+    if vertex_num is None:
+        return 1 - pdist(data, metric='correlation')
+    else:
+        data_vert = data[vertex_num, :]
+        return 1 - isfc(data, data_vert)

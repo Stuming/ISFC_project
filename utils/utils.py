@@ -4,7 +4,6 @@
 import os
 from scipy import stats
 import numpy as np
-from array import array
 
 
 def match_datashape(f1,f2):
@@ -34,13 +33,16 @@ def corr(array1, array2, method_name="pearson"):
     return r
 
 
-def data_to_array(data, i, j=0, k=0):
+def data_to_array(data, i=None, j=0, k=0):
+    # TODO modify it to adapt .nii data.
     """Convert the format(memmap) of the data got from nib.get_data() into array.
     Output is sequence data of index(i,j,k), as array format.
     data: got from nib.get_data();
     i, j, k: the index of data, should be settled based on the data dimension."""
-    data_array = array('f')
-    data_array.fromlist(data[i,j,k,:].tolist())
+    if i is None:
+        data_array = np.asarray(data)
+    else:
+        data_array = np.asarray(data[i, j, k, :])
     return data_array
 
 
