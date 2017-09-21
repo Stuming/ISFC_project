@@ -71,3 +71,13 @@ def check_dir(dirpath, new=True):
         print ("Creating dir: %s" % dirpath)
         os.makedirs(dirpath)
     return 1
+
+
+def mk_rand_lut(row, rand_range=(0,255)):
+    ltable = np.zeros([row, 4])
+    for i in range(row):
+        ltable[i, 0] = np.random.randint(rand_range[0], rand_range[1])
+        ltable[i, 1] = np.random.randint(rand_range[0], rand_range[1])
+        ltable[i, 2] = np.random.randint(rand_range[0], rand_range[1])
+        ltable[i, 3] = 255
+    return ltable
