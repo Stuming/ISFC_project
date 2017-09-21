@@ -16,14 +16,18 @@ def data_stats(f_img):
     #     print("The data has nan value, please check out.")
 
 
-def check_zeros(f_img, num=0, show_index=True):
-    """Check if `num` in column of f_img.
-    f_img should be .mgz format, since `data = f_img.get_data()[:, 0, 0, :]`
-    show_index decide whether return index list or not."""
+def del_zeros(data, show_zeros=False):
+    """Check if zeros in column of data.
+    data: 2-dimension array.
+    show_zeros: whether to show zeros list.
+    return:
+        data1: data after delete zeros.
+        zeros: indexes of zero column."""
     # TODO modify func to make para `num` work
-    data = f_img.get_data()[:, 0, 0, :]
-    zeroindex = np.where(~data.any(axis=1))[0]
-    sum = len(zeroindex)
-    if show_index:
-        return zeroindex, sum
-    return sum
+    zeros = np.where(~data.any(axis=1))[0]
+    if show_zeros:
+        print(zeros)
+    data1 = np.delete(data, zeros, axis=0)
+    del_num = data.shape[0] - data1.shape[0]
+    print("Delete %i vertexes from data." % del_num)
+    return data1, zeros
