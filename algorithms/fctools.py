@@ -37,15 +37,10 @@ def isc(data1, data2, shape):
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
-def wsfc(data, vertex_num=None):
+def wsfc(data):
     """Cal within subject functional connectivity of data.
     data: brain image data.
     vertex_num: the vertex in data1 used to cal isfc, default is None, means cal fc matrix.
     """
-    if not data.shape == 2:
-        raise Exception("Input should be 2-dimension, not %i." % data.shape)
-    if vertex_num is None:
-        return 1 - pdist(data, metric='correlation')
-    else:
-        data_vert = data[vertex_num, :]
-        return 1 - isfc(data, data_vert)
+    # TODO pdist seems return different value compared to cdist, so use cdist.
+    return isfc(data, data)
