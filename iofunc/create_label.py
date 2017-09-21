@@ -41,7 +41,8 @@ def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", he
     return 1
 
 
-def cl_index(filepath, index_dict, output_dir=os.getcwd(), update=False):
+def cl_index(filepath, index_dict, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
+             update=False):
     """Create label by index from atlas file.
     filepath: should be atlas file path(like van essen map).
     index_dict: dict that contain index and its region name.
@@ -59,7 +60,7 @@ def cl_index(filepath, index_dict, output_dir=os.getcwd(), update=False):
             continue
 
         vertex = get_vertexes(filepath, index)
-        geo = Surface("fsaverage", "lh", "inflated")
+        geo = Surface(subj_id, hemi, map_surface)
         geo.load_geometry()
 
         with open(label_path, "w") as f:
@@ -67,6 +68,29 @@ def cl_index(filepath, index_dict, output_dir=os.getcwd(), update=False):
             for i in vertex[0]:
                 x, y, z = geo.coords[i]
                 f.write("%d  %f  %f  %f  0.000000\n" % (i, x, y, z))
+
+
+def cl_vertexes(vertex_list, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
+             update=False):
+    check_dir(output_dir)
+    print("Output dir is: %s" % output_dir)
+
+    label_name = "%s.label" % label_name
+    label_path = os.path.join(output_dir, label_name)
+
+    if (not update) and os.path.exists(label_name):
+        print("Not updated: %s exists, file is not saved." % label_path)
+        return 0
+
+    geo = Surface(subj_id, hemi, map_surface)
+    geo.load_geometry()
+
+    with open(label_path, "w") as f:
+        f.write("%d\n" % len(vertex_list))
+        for i in vertex_list:
+            x, y, z = geo.coords[i]
+            f.write("%d  %f  %f  %f  0.000000\n" % (i, x, y, z))
+    return 1
 
 
 def get_vertexes(file_path, index):
