@@ -15,6 +15,6 @@ def nsnt_fc(method_name, data1, shape, data2=None, vertex_num=None):
     elif method_name == "ISC":
         return isc(data1, data2, shape)
     elif method_name in ["FC", "WSFC"]:
-        return wsfc(data1, vertex_num)
+        return wsfc(data1)
     else:
         raise Exception("Wrong input, please check out.")
