@@ -1,12 +1,14 @@
 """Display value info about data."""
 import numpy as np
+import nibabel as nib
 
 
-def data_stats(f_img):
+def data_stats(data):
     """Print stats about data in f_img, and f_img should be got from nib.load()"""
     # f.get_data()  std(), min(), max(), mean(), argmax(), any()
-    data = f_img.get_data()
-    print("Data shape: " + str(f_img.get_shape()))
+    if isinstance(data, nib.nifti1.Nifti1Image):
+        print("Data shape: " + str(data.get_shape()))
+        data = data.get_data()
     # FIXME argmax may get huge index bigger than data shape.
     print("Max value: %.2f" % np.max(data)+"  index: %i" % np.argmax(data))
     print("Min value: %.2f" % np.min(data)+"  index: %i" % np.argmin(data))
