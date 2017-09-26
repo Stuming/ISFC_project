@@ -1,5 +1,5 @@
 import numpy as np
-from utils.utils import get_adjmatrix
+from utils import get_adjmatrix
 
 
 class matrix_function:

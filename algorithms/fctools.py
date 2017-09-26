@@ -6,7 +6,7 @@ isc: Inter-subject correlation.
 fc: Functional correlation.
 """
 import numpy as np
-from scipy.spatial.distance import cdist, pdist
+from scipy.spatial.distance import cdist
 from utils.utils import corr, data_to_array
 
 
@@ -37,10 +37,15 @@ def isc(data1, data2, shape):
 
 
 # TODO refactor code to match nifti data(change index of var 'shape').
-def wsfc(data):
+def wsfc(data, method_name="correlation", beta=1):
     """Cal within subject functional connectivity of data.
     data: brain image data.
     vertex_num: the vertex in data1 used to cal isfc, default is None, means cal fc matrix.
     """
     # TODO pdist seems return different value compared to cdist, so use cdist.
-    return isfc(data, data)
+    if method_name == "euclidean":
+        dist = cdist(data, data, "euclidean")
+        corr = np.exp(-beta * dist / dist.std())  # use heat kernel
+        return corr
+    if method_name == "correlation":
+        return isfc(data, data)

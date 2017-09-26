@@ -75,13 +75,20 @@ def check_dir(dirpath, new=True):
     return 1
 
 
-def mk_rand_lut(row, rand_range=(0,255)):
+def mk_rand_lut(row, rand_range=(0,255), alpha=255):
+    """
+    Make random lookup table, use as colormap.
+    :param row: set number of colors in lut
+    :param rand_range: set extent of lut value.
+    :param alpha: opacity, range from 0 to 255.
+    :return: an [row, 4] shaped lookup table.
+    """
     ltable = np.zeros([row, 4])
     for i in range(row):
         ltable[i, 0] = np.random.randint(rand_range[0], rand_range[1])
         ltable[i, 1] = np.random.randint(rand_range[0], rand_range[1])
         ltable[i, 2] = np.random.randint(rand_range[0], rand_range[1])
-        ltable[i, 3] = 255
+        ltable[i, 3] = alpha
     return ltable
 
 
