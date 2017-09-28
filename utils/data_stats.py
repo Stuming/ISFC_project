@@ -46,7 +46,8 @@ def remove_outlier(data, thr=(-3, 3), flatten_order='F'):
                           see more detail:
                             a = numpy.array([])
                             help(a.flatted)
-    :return: result after remove outlier, with the same shape of the input.
+    :return: result: result after remove outlier, with the same shape of the input.
+             outlier_index: index of outliers.
     """
     # TODO make param `axis` work, which means remove outlier by row or column.
     axis = None
@@ -70,6 +71,8 @@ def remove_outlier(data, thr=(-3, 3), flatten_order='F'):
         except:
             result[i] = (result[i-1] + result[0]) / 2
 
+    outlier_bool_rs = outlier_bool.reshape(shape, order=flatten_order)
+    outlier_index = np.where(outlier_bool_rs)
     result = result.reshape(shape, order=flatten_order)
 
-    return result
+    return result, outlier_index
