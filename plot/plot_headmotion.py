@@ -35,7 +35,7 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=
     plt.subplot(2,1,1)
 
     if title_id is not None:
-        plt.title("Head motion $s" % title_id)
+        plt.title("Head motion %s" % title_id)
     else:
         plt.title("Head motion")
 
