@@ -130,3 +130,24 @@ class matrix_function:
         fname.append(postfix)
         filename = "".join(fname)
         return filename
+
+
+def mk_label_adjmatrix(vertex_adjmatrix, label_image):
+    """
+    Calculate adjacent matrix of labels from adjacent matrix of vertexes.
+    :param vertex_adjmatrix: adjacent matrix of vertexes (n x n, n is number of vertexes).
+    :param label_image: labels of vertexes (n x 1).
+    :return: adjacent matrix of labels (l x l, l is number of labels).
+    Note: labels in label_image should in the range from 0 to max label number.
+    """
+    labels = np.unique(label_image)
+    l = len(labels)
+    n = len(label_image)
+    temp_matrix = np.zeros((l, n))
+    label_adjmatrix = np.zeros((l, l))
+    for label in range(l):
+        temp_matrix[label, :] = np.sum(vertex_adjmatrix[np.where(label_image == label)[0], :], axis=0)
+
+    for label in range(l):
+        label_adjmatrix[:, label] = np.sum(temp_matrix[:, np.where(label_image == label)[0]], axis=1).T
+    return label_adjmatrix
