@@ -1,4 +1,39 @@
+"""
+Provide tools for get or make matrix, faces, or other forms that reflect adjacent relationships of brain surface.
+"""
 import numpy as np
+from surfer import Surface
+from ATT.algorithm import surf_tools
+
+
+def get_adjmatrix(subj_id, hemi, surf):
+    """
+    :param subj_id: subject id (eg. "fsaverage").
+    :param hemi: hemisphere (eg. "lh").
+    :param surf: surface (eg. "inflated").
+    :return: adjm: adj matrix that reflect linkages of (subj_id, hemi, surf), its shape is (vert_num, vert_num).
+    Example:
+            adjm = get_adjmatrix("fsaverage", "lh", "inflated")
+    """
+    edges = surf_tools.extract_edge_from_faces(get_faces(subj_id, hemi, surf))
+    mk_adjm = surf_tools.GenAdjacentMatrix()
+    adjm = mk_adjm.from_edge(edges)
+    return adjm
+
+
+def get_faces(subj_id, hemi, surf):
+    """
+    Get faces by (subj_id, hemi, surf).
+    :param subj_id: subject id (eg. "fsaverage").
+    :param hemi: hemisphere (eg. "lh").
+    :param surf: surface (eg. "inflated").
+    :return: faces that contain triangle of (subj_id, hemi, surf).
+    Example:
+            faces = get_faces("fsaverage", "lh", "inflated")
+    """
+    geo = Surface(subj_id, hemi, surf)
+    geo.load_geometry()
+    return geo.faces
 
 
 def mk_label_adjmatrix(label_image, adjmatrix):
@@ -21,7 +56,7 @@ def mk_label_adjmatrix(label_image, adjmatrix):
     for label in range(l):
         label_adjmatrix[:, label] = np.sum(temp_matrix[:, np.where(label_image == label)[0]], axis=1).T
 
-    # adj matrix binaryzation
+    # make binary adjmatrix
     label_adjmatrix[np.where(label_adjmatrix > 0)] = 1
     label_adjmatrix[range(l), range(l)] = 0
     return label_adjmatrix

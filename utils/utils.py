@@ -4,8 +4,6 @@
 import os
 from scipy import stats
 import numpy as np
-from surfer import Surface
-from ATT.algorithm import surf_tools
 
 
 def match_datashape(f1,f2):
@@ -91,18 +89,3 @@ def mk_rand_lut(row, rand_range=(0,255), alpha=255):
         ltable[i, 3] = alpha
     return ltable
 
-
-def get_adjmatrix(subj_id, hemi, surf):
-    """Get adjacency matrix by (subj_id, hemi, surf).
-    Return:
-        adjm: adjacency matrix that shape is (vert_num, vert_num).
-    Example:
-            adjm = get_adjmatrix("fsaverage", "lh", "inflated")"""
-    geo = Surface(subj_id, hemi, surf)
-    geo.load_geometry()
-
-    edges = surf_tools.extract_edge_from_faces(geo.faces)
-    mk_adjm = surf_tools.GenAdjacentMatrix()
-    adjm = mk_adjm.from_edge(edges)
-
-    return adjm
