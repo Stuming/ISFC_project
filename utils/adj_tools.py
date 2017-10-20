@@ -6,16 +6,16 @@ from surfer import Surface
 from ATT.algorithm import surf_tools
 
 
-def get_adjmatrix(subj_id, hemi, surf):
+def get_adjmatrix(faces):
     """
-    :param subj_id: subject id (eg. "fsaverage").
-    :param hemi: hemisphere (eg. "lh").
-    :param surf: surface (eg. "inflated").
+    Build adjmatrix by faces.
+    :param faces: contain triangles of brain surface.
     :return: adjm: adj matrix that reflect linkages of (subj_id, hemi, surf), its shape is (vert_num, vert_num).
     Example:
-            adjm = get_adjmatrix("fsaverage", "lh", "inflated")
+            faces = get_faces("fsaverage", "lh", "inflated")
+            adjm = get_adjmatrix(faces)
     """
-    edges = surf_tools.extract_edge_from_faces(get_faces(subj_id, hemi, surf))
+    edges = surf_tools.extract_edge_from_faces(faces)
     mk_adjm = surf_tools.GenAdjacentMatrix()
     adjm = mk_adjm.from_edge(edges)
     return adjm
@@ -69,11 +69,12 @@ def mk_label_adjfaces(label_image, faces):
     :param faces: faces of vertexes, its shape depends on surface (m x 3).
     :return: faces of labels (l x 3).
     """
-    label_faces = np.copy(faces)
+    label_face = np.copy(faces)
     for i in faces:
-        label_faces[np.where(faces == i)[0]] = [label_image[i[0]], label_image[i[1]], label_image[i[2]]]
-    label_faces = np.array(list(set([tuple(column) for column in label_faces])))  # remove duplicate elements
-    for i in label_faces:
-        if np.unique(i).shape[0] == 1:
-            label_faces = np.delete(label_faces, np.where(label_faces == i), axis=0)  # delete none faces elements
-    return label_faces
+        label_face[np.where(faces == i)[0]] = [label_image[i[0]], label_image[i[1]], label_image[i[2]]]
+    label_faces_rde = np.array(list(set([tuple(column) for column in label_face])))  # remove duplicate elements
+    label_faces = []
+    for column in label_faces_rde:
+        if np.unique(column).shape[0] != 1:
+            label_faces.append(column)  # only keep face elements
+    return np.array(label_faces)
