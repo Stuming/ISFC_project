@@ -21,6 +21,19 @@ def get_adjmatrix(faces):
     return adjm
 
 
+def _get_geo(subj_id, hemi, surf):
+    """
+    Get geo of (subj_id, hemi, surf).
+    :param subj_id: subject id (eg. "fsaverage").
+    :param hemi: hemisphere (eg. "lh").
+    :param surf: surface (eg. "inflated").
+    :return: geo of (subj_id, hemi, surf).
+    """
+    geo = Surface(subj_id, hemi, surf)
+    geo.load_geometry()
+    return geo
+
+
 def get_faces(subj_id, hemi, surf):
     """
     Get faces by (subj_id, hemi, surf).
@@ -31,9 +44,20 @@ def get_faces(subj_id, hemi, surf):
     Example:
             faces = get_faces("fsaverage", "lh", "inflated")
     """
-    geo = Surface(subj_id, hemi, surf)
-    geo.load_geometry()
-    return geo.faces
+    return _get_geo(subj_id, hemi, surf).faces
+
+
+def get_coords(subj_id, hemi, surf):
+    """
+    Get faces by (subj_id, hemi, surf).
+    :param subj_id: subject id (eg. "fsaverage").
+    :param hemi: hemisphere (eg. "lh").
+    :param surf: surface (eg. "inflated").
+    :return: coords of (subj_id, hemi, surf).
+    Example:
+            coords = get_coords("fsaverage", "lh", "inflated")
+    """
+    return _get_geo(subj_id, hemi, surf).coords
 
 
 def mk_label_adjmatrix(label_image, adjmatrix):
@@ -78,3 +102,20 @@ def mk_label_adjfaces(label_image, faces):
         if np.unique(column).shape[0] != 1:
             label_faces.append(column)  # only keep face elements
     return np.array(label_faces)
+
+
+def concat_coords_to_data(data, coords, w1=1, w2=1):
+    """
+    Concatenate coords to data, which is used as adj constraint.
+    :param data: time series.
+    :param coords: coords of vertexes.
+    :param w1: weight of data.
+    :param w2: weight of coords.
+    :return: data concatenating coords by multiplying weight.
+    Note: 1. shape[0] of data should match shape[0] of coords.
+          2. w1 (same as w2) works by multiplication, default is 1.
+    """
+    assert data.shape[0] == coords.shape[0], "The first shape of input is not match."
+    data = np.concatenate((data * w1, coords * w2), axis=1)
+    return data
+
