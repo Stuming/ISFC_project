@@ -8,12 +8,20 @@ from ATT.algorithm import surf_tools
 
 def get_adjmatrix(faces):
     """
-    Build adjmatrix by faces.
-    :param faces: contain triangles of brain surface.
-    :return: adjm: adj matrix that reflect linkages of (subj_id, hemi, surf), its shape is (vert_num, vert_num).
-    Example:
-            faces = get_faces("fsaverage", "lh", "inflated")
-            adjm = get_adjmatrix(faces)
+    Build adjacency matrix by faces.
+
+    Parameters
+    ----------
+        faces: contain triangles of brain surface.
+
+    Returns
+    -------
+        adjm: adj matrix that reflect linkages of (subj_id, hemi, surf), shape = (vert_num, vert_num).
+
+    Examples
+    --------
+        faces = get_faces("fsaverage", "lh", "inflated")
+        adjm = get_adjmatrix(faces)
     """
     edges = surf_tools.extract_edge_from_faces(faces)
     mk_adjm = surf_tools.GenAdjacentMatrix()
@@ -23,11 +31,17 @@ def get_adjmatrix(faces):
 
 def _get_geo(subj_id, hemi, surf):
     """
-    Get geo of (subj_id, hemi, surf).
-    :param subj_id: subject id (eg. "fsaverage").
-    :param hemi: hemisphere (eg. "lh").
-    :param surf: surface (eg. "inflated").
-    :return: geo of (subj_id, hemi, surf).
+    Get geometry of (subj_id, hemi, surf).
+
+    Parameters
+    ----------
+        subj_id: subject id (eg. "fsaverage").
+        hemi: hemisphere (eg. "lh").
+        surf: surface (eg. "inflated").
+
+    Returns
+    -------
+        geo: geometry of (subj_id, hemi, surf).
     """
     geo = Surface(subj_id, hemi, surf)
     geo.load_geometry()
@@ -36,26 +50,42 @@ def _get_geo(subj_id, hemi, surf):
 
 def get_faces(subj_id, hemi, surf):
     """
-    Get faces by (subj_id, hemi, surf).
-    :param subj_id: subject id (eg. "fsaverage").
-    :param hemi: hemisphere (eg. "lh").
-    :param surf: surface (eg. "inflated").
-    :return: faces that contain triangle of (subj_id, hemi, surf).
-    Example:
-            faces = get_faces("fsaverage", "lh", "inflated")
+    Get faces of (subj_id, hemi, surf).
+
+    Parameters
+    ----------
+        subj_id: subject id (eg. "fsaverage").
+        hemi: hemisphere (eg. "lh").
+        surf: surface (eg. "inflated").
+
+    Returns
+    -------
+        faces that contain triangle of (subj_id, hemi, surf).
+
+    Examples
+    --------
+        faces = get_faces("fsaverage", "lh", "inflated")
     """
     return _get_geo(subj_id, hemi, surf).faces
 
 
 def get_coords(subj_id, hemi, surf):
     """
-    Get faces by (subj_id, hemi, surf).
-    :param subj_id: subject id (eg. "fsaverage").
-    :param hemi: hemisphere (eg. "lh").
-    :param surf: surface (eg. "inflated").
-    :return: coords of (subj_id, hemi, surf).
-    Example:
-            coords = get_coords("fsaverage", "lh", "inflated")
+    Get coordinates by (subj_id, hemi, surf).
+
+    Parameters
+    ----------
+        subj_id: subject id (eg. "fsaverage").
+        hemi: hemisphere (eg. "lh").
+        surf: surface (eg. "inflated").
+
+    Returns
+    -------
+        coords: coordinates of (subj_id, hemi, surf).
+
+    Examples
+    --------
+        coords = get_coords("fsaverage", "lh", "inflated")
     """
     return _get_geo(subj_id, hemi, surf).coords
 
@@ -63,11 +93,20 @@ def get_coords(subj_id, hemi, surf):
 def mk_label_adjmatrix(label_image, adjmatrix):
     """
     Calculate adjacent matrix of labels from adjacent matrix of vertexes.
-    :param label_image: labels of vertexes (n x 1).
-    :param adjmatrix: adjacent matrix of vertexes (n x n, n is number of vertexes).
-    :return: adjacent matrix of labels (l x l, l is number of labels).
-    Note: 1. labels in label_image should in the range from 0 to max label number.
-          2. may cause memory error, try to use mk_label_adjfaces() inplace.
+
+    Parameters
+    ----------
+        label_image: labels of vertexes, shape = (n, 1), n is number of vertexes.
+        adjmatrix: adjacent matrix of vertexes, shape = (n, n).
+
+    Returns
+    -------
+        label_adjmatrix: adjacent matrix of labels, shape = (l, l), l is number of labels.
+
+    Notes
+    -----
+        1. labels in label_image should in the range from 0 to max label number.
+        2. for large number of vertexes, this method may cause memory error, try to use mk_label_adjfaces() inplace.
     """
     labels = np.unique(label_image)
     l = len(labels)
@@ -89,9 +128,15 @@ def mk_label_adjmatrix(label_image, adjmatrix):
 def mk_label_adjfaces(label_image, faces):
     """
     Calculate faces of labels based on faces of vertexes.
-    :param label_image: labels of vertexes (n x 1).
-    :param faces: faces of vertexes, its shape depends on surface (m x 3).
-    :return: faces of labels (l x 3).
+
+    Parameters
+    ----------
+        label_image: labels of vertexes, shape = (n, 1).
+        faces: faces of vertexes, its shape depends on surface, shape = (m, 3).
+
+    Returns
+    -------
+        label_faces: faces of labels, shape = (l, 3).
     """
     label_face = np.copy(faces)
     for i in faces:
@@ -106,14 +151,21 @@ def mk_label_adjfaces(label_image, faces):
 
 def concat_coords_to_data(data, coords, w1=1, w2=1):
     """
-    Concatenate coords to data, which is used as adj constraint.
-    :param data: time series.
-    :param coords: coords of vertexes.
-    :param w1: weight of data.
-    :param w2: weight of coords.
-    :return: data concatenating coords by multiplying weight.
-    Note: 1. shape[0] of data should match shape[0] of coords.
-          2. w1 (same as w2) works by multiplication, default is 1.
+    Concatenate coordinates to data, which is used as adj constraint.
+
+    Parameters
+    ----------
+        data: time series, shape = (n, l).
+        coords: coordinates of vertexes, shape = (n, 3).
+        w1: weight of data.
+        w2: weight of coords.
+
+    Returns
+    -------
+        data: after concatenating coordinates by multiplying weight.
+    Notes
+    -----
+        1. w1 (same as w2) works by multiplication, default is 1.
     """
     assert data.shape[0] == coords.shape[0], "The first shape of input is not match."
     data = np.concatenate((data * w1, coords * w2), axis=1)

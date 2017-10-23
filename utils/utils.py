@@ -1,27 +1,49 @@
-# Calculate based on mgh data.
-# Input file format: *.mgh (output format: *.mgh)
-# the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
+"""
+Calculate based on mgh data.
+Input file format: *.mgh (output format: *.mgh)
+the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
+"""
 import os
 from scipy import stats
 import numpy as np
 
 
-def match_datashape(f1,f2):
-    """Check if the shape of f1 and f2 is equal."""
-    if f1.get_shape() == f2.get_shape():
-        return 1
+def match_datashape(data1, data2):
+    """
+    Check if the shape of data1 and data2 is equal.
 
-    print("The shape is not right, please check!")
-    print(f1.get_filename())
-    print(f2.get_filename())
-    return 0
+    Parameters
+    ----------
+        data1: data that should be checked .
+        data2: data that should be checked.
+
+    Returns
+    -------
+        boolean value, `True` stands for match, `False` stands for mismatch.
+    """
+    if data1.get_shape() == data2.get_shape():
+        return True
+    return False
 
 
 def corr(array1, array2, method_name="pearson"):
-    """Calculate correlation between array1 and array2.
-    array1, array2: should be 1-D array, output from nsnt.utils.data_to_array()
-    method_name: "pearson" or "spearman" correlation
-    If correlation coefficient is nan, then make it 0."""
+    """
+    Calculate correlation between array1 and array2.
+
+    Parameters
+    ----------
+        array1: 1-D array
+        array2: 1-D array
+        method_name: `pearson` or `spearman` correlation
+
+    Returns
+    -------
+        r: correlation coefficient of array1 and array2.
+
+    Notes
+    -----
+        1. if correlation coefficient is nan, then it would be assigned to 0.
+    """
     if method_name == "pearson":
         r, pval = stats.pearsonr(array1, array2)
     elif method_name == "spearman":
@@ -33,23 +55,20 @@ def corr(array1, array2, method_name="pearson"):
     return r
 
 
-def data_to_array(data, i=None, j=0, k=0):
-    # TODO modify it to adapt .nii data.
-    """Convert the format(memmap) of the data got from nib.get_data() into array.
-    Output is sequence data of index(i,j,k), as array format.
-    data: got from nib.get_data();
-    i, j, k: the index of data, should be settled based on the data dimension."""
-    if i is None:
-        data_array = np.asarray(data)
-    else:
-        data_array = np.asarray(data[i, j, k, :])
-    return data_array
-
-
 def check_list(list_data):
-    """ Check list_data's type, if waveform read from file, then element in list would be string and have "\n",
-    which should be striped.
-    If waveform get from calculation, then element in list would be a number, and just return it.
+    """
+    Check type of list_data.
+    If list_data is read from text file(eg. waveforms), then element in list would be string and have `\n`,
+        which should be striped.
+    If list_data is got from calculation, then element in list would be numbers.
+
+    Parameters
+    ----------
+        list_data: input data that needs to be checked.
+
+    Returns
+    -------
+        list_data: data without `\n` in it.
     """
     if isinstance(list_data, list):
         num = list_data[0]
@@ -59,11 +78,18 @@ def check_list(list_data):
 
 
 def check_dir(dirpath, new=True):
-    """Check whether dirpath exists, and create it if needed.
-    dirpath: input path used to check.
-    new: make dir if not exists.
-    :return: 0 for dir not exists(not found or not created)
-             1 for dir exists."""
+    """
+    Check whether dirpath exists, and create it if `new == True`.
+
+    Parameters
+    ----------
+        dirpath: input path which needs to be checked.
+        new: default is True, which stands for making dir if dirpath does not exist.
+
+    Returns
+    -------
+        boolean value, return 0 for dir not exists(not found or not created), otherwise return 1.
+    """
     if not os.path.exists(dirpath):
         if not new:
             print("%s is not found." % dirpath)
@@ -76,10 +102,16 @@ def check_dir(dirpath, new=True):
 def mk_rand_lut(row, rand_range=(0,255), alpha=255):
     """
     Make random lookup table, use as colormap.
-    :param row: set number of colors in lut
-    :param rand_range: set extent of lut value.
-    :param alpha: opacity, range from 0 to 255.
-    :return: an [row, 4] shaped lookup table.
+
+    Parameters
+    ----------
+        row: set number of colors in lut
+        rand_range: set extent of lut value.
+        alpha: opacity, range from 0 to 255.
+
+    Returns
+    -------
+        ltable: an (row, 4) shaped lookup table.
     """
     ltable = np.zeros([row, 4])
     for i in range(row):

@@ -4,7 +4,13 @@ import nibabel as nib
 
 
 def data_stats(data):
-    """Print stats about data in f_img, and f_img should be got from nib.load()"""
+    """
+    Print stats about data, used for formatting output.
+
+    Parameters
+    ----------
+        data: should be array or list.
+    """
     # f.get_data()  std(), min(), max(), mean(), argmax(), any(), unique(), bincount()
     if isinstance(data, nib.nifti1.Nifti1Image):
         print("Data shape: " + str(data.get_shape()))
@@ -19,13 +25,20 @@ def data_stats(data):
 
 
 def del_zeros(data, show_zeros=False):
-    """Check if zeros in column of data.
-    data: 2-dimension array.
-    show_zeros: whether to show zeros list.
-    return:
+    """
+    Check and split zeros in column of data.
+
+    Parameters
+    ----------
+        data: 2-dimension array.
+        show_zeros: whether to show zeros list, default is 'False'.
+
+    Returns
+    -------
         data1: data after delete zeros.
-        zeros: indexes of zero column."""
-    # TODO modify func to make para `num` work
+        zeros: indexes of zero column.
+    """
+    # TODO check dimension of data
     zeros = np.where(~data.any(axis=1))[0]
     if show_zeros:
         print(zeros)
@@ -38,16 +51,25 @@ def del_zeros(data, show_zeros=False):
 def remove_outlier(data, thr=(-3, 3), flatten_order='F'):
     """
     Check data and remove/replace values that out of 3 times std.
-    Note: this function remove outlier by average values locate both side of outlier index,
-          and flatten data(by numpy.flatted()) before remove outlier.
-    :param data: array data.
-    :param thr: define range of outlier
-    :param flatten_order: define flatten order, 'C' for row-major, 'F' for column-order, or preserve C/F order from 'a'.
-                          see more detail:
+
+    Parameters
+    ----------
+        data: array data.
+        thr: define range of outlier
+        flatten_order: define flatten order, 'C' for row-major, 'F' for column-order, or preserve C/F order from 'a'.
+                        see more detail:
                             a = numpy.array([])
                             help(a.flatted)
-    :return: result: result after remove outlier, with the same shape of the input.
-             outlier_index: index of outliers.
+
+    Returns
+    -------
+        result: data after removing outlier, with the same shape of the input.
+        outlier_index: index of outliers.
+
+    Notes
+    -----
+        1. this function remove outlier by average values locate both side of outlier index,
+            and flatten data(by numpy.flatted()) before remove outlier.
     """
     # TODO make param `axis` work, which means remove outlier by row or column.
     axis = None

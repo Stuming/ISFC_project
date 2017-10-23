@@ -10,11 +10,16 @@ class matrix_function:
         self.state = {"de_zero": de_zero, "pos": pos, "adj": adj, "exp_rs": exp_rs}
 
     def del_zeros(self, smatrix, show_zeros=False):
-        """Check if zeros in column(and row) of smatrix.
-        smatrix: 2-dimension similarity matrix.
-        show_zeros: whether to show zeros array.
+        """
+        Check if zeros in column(and row) of smatrix.
 
-        Return:
+        Parameters
+        ----------
+            smatrix: 2-dimension similarity matrix.
+            show_zeros: whether to show zeros array.
+
+        Returns
+        -------
             data1: data after delete zeros.
             zeros: indexes of zero column.
         """
@@ -41,11 +46,15 @@ class matrix_function:
         return dsmatrix, zeros0
 
     def positive(self, smatrix, show_index=False):
-        """Replace negative data to zero in smatrix.
-        smatrix: 2-dimension similarity matrix.
-        show_index: whether to show index array.
+        """
+        Replace negative data to zero in smatrix.
 
-        Return:
+        Parameters
+        ----------
+            smatrix: 2-dimension similarity matrix.
+            show_index: whether to show index array.
+
+        Returns
             smatrix: after positive operation
             neg_index: index of negative value in origin smatrix.
         """
@@ -64,14 +73,24 @@ class matrix_function:
         return smatrix, neg_index
 
     def adj_constrain(self, smatrix, subj_id, hemi, surf, zeros=None, adjm=None):
-        """Add adjacency constrain to smatrix.
-        smatrix: similarity matrix that want to remove negative value.
-        zeros: get from del_zeros(), and will be used to delete zero columns(rows) in adjacent matrix.
-        subj_id: subject id that get adj constrain matrix from.
-        hemi: hemi that do things as above.
-        surf: surf that do things as above.
+        """
+        Add adjacency constrain to smatrix.
 
-        Example:
+        Parameters
+        ----------
+            smatrix: similarity matrix that want to remove negative value.
+            zeros: get from del_zeros(), and will be used to delete zero columns(rows) in adjacent matrix.
+            subj_id: subject id that get adj constrain matrix from.
+            hemi: hemi that do things as above.
+            surf: surf that do things as above.
+
+        Returns
+        -------
+            smatrix: smatrix after adding adjacency constraint.
+            adjm: adjacency matrix that was applied.
+
+        Examples
+        --------
             smatrix_adj, adjm = adj_constrain(smtrix_origin, zeros, "fsaverage", "lh", "inflated")
         """
         state = "adj"
@@ -91,12 +110,18 @@ class matrix_function:
         return smatrix, adjm
 
     def exp_rescale(self, smatrix, l=1):
-        """Rescale smatrix as exponential function.
-        l: exp index.
-        rsmatrix = exp(-1*l*(1-rmatrix))
+        """
+        Rescale smatrix as exponential function.
 
-        Return:
-            rsmatrix: rescaled matrix."""
+        Parameters
+        ----------
+            l: exp index.
+            rsmatrix = exp(-1*l*(1-rmatrix))
+
+        Returns
+        -------
+            rsmatrix: rescaled matrix.
+        """
         state = "exp_rs"
         if self.query_state(state):
             print("exponential has already been done.")
@@ -108,19 +133,37 @@ class matrix_function:
         return rsmatrix
 
     def query_state(self, state=None):
-        """Query state in class.
-        state: the state that will be queried, True means done, False means undone.
-               If None, then print all state.
+        """
+        Query state in class.
+
+        Parameters
+        ----------
+            state: the state that will be queried. True means done, False means undone. If None, then print all state.
+
+        Returns
+        -------
+            status of state, -1 stands for get nothing, 0 for state is not done, 1 for state is done.
         """
         if not state:
             print(self.state)
-            return 1
+            return -1
         if state in self.state:
             return self.state[state]
         print("`state` should in %s" % state.keys())
-        return 0
+        return -1
 
     def make_filename(self, filename):
+        """
+        Make filename based on state.
+
+        Parameters
+        ----------
+            filename: string that contains filename.
+
+        Returns
+        -------
+            filename: filename after adding states.
+        """
         fname = filename.split('.')
         postfix = fname[-1]
         fname.pop(-1)
