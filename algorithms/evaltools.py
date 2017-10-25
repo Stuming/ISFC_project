@@ -54,7 +54,8 @@ def homogeneity(data, parcel):
 
     Notes
     -----
-        1. the max label number in parcel should be assigned to the medial wall.
+        1. the max number of labels should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
     """
     max_label = np.max(parcel)
     homo_list = np.zeros(max_label)
@@ -82,6 +83,7 @@ def dice_mat(parcel1, parcel2):
     Notes
     -----
         1. the max label number in parcel should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
     """
     row_num = np.max(parcel1)
     column_num = np.max(parcel2)
@@ -108,6 +110,7 @@ def dice_coef(parcel1, parcel2):
     Notes
     -----
         1. the max label number in parcel should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
     """
     return np.mean(dice_mat(parcel1, parcel2))
 
@@ -126,3 +129,46 @@ def silhouette_coef(data, parcel):
         silhouette coefficient
     """
     return silhouette_score(data, parcel)
+
+
+def parcel_connected_component(parcel, faces):
+    """
+    Check if every parcel in a parcellation is a connected component.
+
+    Parameters
+    ----------
+        parcel: cluster labels, shape = [n_samples].
+        faces: contain triangles of brain surface.
+
+    Returns
+    -------
+        label list if a parcel is not a connected component, otherwise return [].
+
+    Notes
+    -----
+        1. the max label number in parcel should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
+    """
+    max_label = np.max(parcel)
+    label_list = []
+    for i in range(max_label):
+        vertexes = np.where(parcel == i)[0]  # turn tuple to array
+        visited = []
+        neighbors = [vertexes[0]]
+
+        while neighbors:
+            vertex = neighbors.pop(0)
+            visited.append(vertex)
+            neigh = np.unique(faces[np.where(faces == vertex)[0]])
+            for vert in neigh:
+                if vert in vertexes:
+                    if (vert not in visited) and (vert not in neighbors):
+                            neighbors.append(vert)
+
+        for vert in vertexes:
+            if vert not in visited:
+                print("Label %i is not a connected component." % i)
+                label_list.append(i)
+                break
+
+    return label_list
