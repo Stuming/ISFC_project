@@ -6,7 +6,7 @@ from surfer import Surface
 from ATT.algorithm import surf_tools
 
 
-def get_adjmatrix(faces):
+def faces_to_adjmatrix(faces):
     """
     Build adjacency matrix by faces.
 

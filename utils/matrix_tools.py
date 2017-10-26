@@ -1,5 +1,5 @@
 import numpy as np
-from utils import get_adjmatrix
+from adj_tools import get_faces, faces_to_adjmatrix
 
 
 class matrix_function:
@@ -20,7 +20,7 @@ class matrix_function:
 
         Returns
         -------
-            data1: data after delete zeros.
+            data1: matrix after delete zeros.
             zeros: indexes of zero column.
         """
         state = "de_zero"
@@ -55,6 +55,7 @@ class matrix_function:
             show_index: whether to show index array.
 
         Returns
+        -------
             smatrix: after positive operation
             neg_index: index of negative value in origin smatrix.
         """
@@ -99,7 +100,8 @@ class matrix_function:
             return smatrix, 0
 
         if not adjm:
-            adjm = get_adjmatrix(subj_id, hemi, surf)
+            faces = get_faces(subj_id, hemi, surf)
+            adjm = faces_to_adjmatrix(faces)
 
         if zeros:
             adjm = np.delete(adjm, zeros, axis=0)

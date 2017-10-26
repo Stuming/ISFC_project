@@ -60,10 +60,14 @@ def homogeneity(data, parcel):
     max_label = np.max(parcel)
     homo_list = np.zeros(max_label)
     for label in range(max_label):
-        vert_list = np.where(parcel == label)
+        vert_list = np.array(np.where(parcel == label))[0]
         vert_num = vert_list.shape[0]
-        fcmap = wsfc(data[vert_list, :])
-        homo_list[label] = 2 * np.sum(fcmap - vert_num) / (vert_num * (vert_num - 1))
+        fcmap = np.nan_to_num(wsfc(data[vert_list, :]))
+        if fcmap.shape[0] == 1:  # some parcels may have only one vertex.
+            homo_list[label] = 1
+        else:
+            # ((np.sum(fcmap) - vert_num) / 2) / (vert_num * (vert_num - 1) / 2)
+            homo_list[label] = (np.sum(fcmap) - vert_num) / (vert_num * (vert_num - 1))
     return np.mean(homo_list)
 
 
@@ -91,12 +95,12 @@ def dice_mat(parcel1, parcel2):
     for i in range(row_num):
         for j in range(column_num):
             dice_matrix[i, j] = calc_overlap(parcel1, parcel2, i, j)
-    return dice_matrix
+    return np.nan_to_num(dice_matrix)
 
 
 def dice_coef(parcel1, parcel2):
     """
-    Calculate mean dice coefficient of parcel1 and parcel2.
+    Calculate mean dice coefficient between parcel1 and parcel2.
 
     Parameters
     ----------
@@ -105,14 +109,18 @@ def dice_coef(parcel1, parcel2):
 
     Returns
     -------
-        dice coef: float, ranges from (0.0, 1.0).
+        dice_coefficient: float, ranges from (0.0, 1.0).
 
     Notes
     -----
         1. the max label number in parcel should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    return np.mean(dice_mat(parcel1, parcel2))
+    dm = dice_mat(parcel1, parcel2)
+    row_max = np.max(dm, axis=0)
+    column_max = np.max(dm, axis=1)
+    dice_coefficient = (np.mean(row_max) + np.mean(column_max)) / 2
+    return dice_coefficient
 
 
 def silhouette_coef(data, parcel):
@@ -152,9 +160,9 @@ def parcel_connected_component(parcel, faces):
     max_label = np.max(parcel)
     label_list = []
     for i in range(max_label):
-        vertexes = np.where(parcel == i)[0]  # turn tuple to array
+        vertexes = np.array(np.where(parcel == i))
         visited = []
-        neighbors = [vertexes[0]]
+        neighbors = [vertexes[0][0]]
 
         while neighbors:
             vertex = neighbors.pop(0)
@@ -170,5 +178,4 @@ def parcel_connected_component(parcel, faces):
                 print("Label %i is not a connected component." % i)
                 label_list.append(i)
                 break
-
     return label_list
