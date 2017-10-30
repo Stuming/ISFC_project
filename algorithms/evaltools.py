@@ -2,51 +2,52 @@
 Used to evaluate clusters or parcellations.
 """
 import numpy as np
-from .fctools import wsfc
-from ATT.algorithm.tools import calc_overlap
-from sklearn.metrics.cluster import adjusted_rand_score, adjusted_mutual_info_score, silhouette_score
 
 
-def ari(parcel1, parcel2):
+def ari(labels1, labels2):
     """
-    Calculate adjusted rand index(ARI) of parcel1 and parcel2.
+    Calculate adjusted rand index(ARI) of the inputs.
 
     Parameters
     ----------
-        parcel1: cluster labels, shape = [n_samples].
-        parcel2: cluster labels, shape = [n_samples].
+        labels1: cluster labels, shape = [n_samples].
+        labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
         ARI: ranges from (-1.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
     """
-    return adjusted_rand_score(parcel1, parcel2)
+    from sklearn.metrics.cluster import adjusted_rand_score
+
+    return adjusted_rand_score(labels1, labels2)
 
 
-def ami(parcel1, parcel2):
+def ami(labels1, labels2):
     """
-    Calculate adjusted mutual information(AMI) of parcel1 and parcel2.
+    Calculate adjusted mutual information(AMI) of the inputs.
 
     Parameters
     ----------
-        parcel1: cluster labels, shape = [n_samples].
-        parcel2: cluster labels, shape = [n_samples].
+        labels1: cluster labels, shape = [n_samples].
+        labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
         AMI: ranges from (0.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
     """
-    return adjusted_mutual_info_score(parcel1, parcel2)
+    from sklearn.metrics.cluster import adjusted_mutual_info_score
+
+    return adjusted_mutual_info_score(labels1, labels2)
 
 
-def homogeneity(data, parcel):
+def homogeneity(data, labels):
     """
-    Calculate homogeneity of a parcel based on its data.
+    Calculate homogeneity of labels based on its data.
 
     Parameters
     ----------
         data: time series, shape = [n_samples, n_features].
-        parcel: cluster labels, shape = [n_samples].
+        labels: cluster labels, shape = [n_samples].
 
     Returns
     -------
@@ -57,13 +58,15 @@ def homogeneity(data, parcel):
         1. the max number of labels should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    max_label = np.max(parcel)
+    from .fctools import wsfc
+
+    max_label = np.int(np.max(labels))
     homo_list = np.zeros(max_label)
     for label in range(max_label):
-        vert_list = np.array(np.where(parcel == label))[0]
+        vert_list = np.array(np.where(labels == label))[0]
         vert_num = vert_list.shape[0]
         fcmap = np.nan_to_num(wsfc(data[vert_list, :]))
-        if fcmap.shape[0] == 1:  # some parcels may have only one vertex.
+        if fcmap.shape[0] == 1:  # some labels may be assigned to only one vertex.
             homo_list[label] = 1
         else:
             # ((np.sum(fcmap) - vert_num) / 2) / (vert_num * (vert_num - 1) / 2)
@@ -71,14 +74,14 @@ def homogeneity(data, parcel):
     return np.mean(homo_list)
 
 
-def dice_mat(parcel1, parcel2):
+def dice_mat(labels1, labels2):
     """
-    Calculate dice coefficient matrix of parcel1 and parcel2.
+    Calculate dice similarity coefficient matrix of the inputs.
 
     Parameters
     ----------
-        parcel1: cluster labels, shape = [n_samples].
-        parcel2: cluster labels, shape = [n_samples].
+        labels1: cluster labels, shape = [n_samples].
+        labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
@@ -86,83 +89,87 @@ def dice_mat(parcel1, parcel2):
 
     Notes
     -----
-        1. the max label number in parcel should be assigned to the medial wall.
+        1. the max label number in labels should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    row_num = np.max(parcel1)
-    column_num = np.max(parcel2)
+    from scipy.spatial.distance import dice
+
+    row_num = np.int(np.max(labels1))
+    column_num = np.int(np.max(labels2))
     dice_matrix = np.zeros((row_num, column_num))
     for i in range(row_num):
         for j in range(column_num):
-            dice_matrix[i, j] = calc_overlap(parcel1, parcel2, i, j)
+            dice_matrix[i, j] = 1 - dice(labels1 == i, labels2 == j)  # dice() measures dice dissimilarity
     return np.nan_to_num(dice_matrix)
 
 
-def dice_coef(parcel1, parcel2):
+def dice_coef(labels1, labels2):
     """
-    Calculate mean dice coefficient between parcel1 and parcel2.
+    Calculate mean dice similarity coefficient of the inputs.
 
     Parameters
     ----------
-        parcel1: cluster labels, shape = [n_samples].
-        parcel2: cluster labels, shape = [n_samples].
+        labels1: cluster labels, shape = [n_samples].
+        labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        dice_coefficient: float, ranges from (0.0, 1.0).
+        dice_coefficient: float, reflects mean dice similarity coefficient, ranges from (0.0, 1.0).
 
     Notes
     -----
-        1. the max label number in parcel should be assigned to the medial wall.
+        1. the max label number in labels should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    dm = dice_mat(parcel1, parcel2)
+    dm = dice_mat(labels1, labels2)
     row_max = np.max(dm, axis=0)
     column_max = np.max(dm, axis=1)
     dice_coefficient = (np.mean(row_max) + np.mean(column_max)) / 2
     return dice_coefficient
 
 
-def silhouette_coef(data, parcel):
+def silhouette_coef(data, labels):
     """
-    Calculate silhouette coefficient of parcel1 and parcel2.
+    Calculate silhouette coefficient of the inputs.
 
     Parameters
     ----------
         data: time series, shape = [n_samples, n_features].
-        parcel: cluster labels, shape = [n_samples].
+        labels: cluster labels, shape = [n_samples].
 
     Returns
     -------
         silhouette coefficient
     """
-    return silhouette_score(data, parcel)
+    from sklearn.metrics.cluster import silhouette_score
+
+    return silhouette_score(data, labels)
 
 
-def parcel_connected_component(parcel, faces):
+def nonconnected_labels(labels, faces):
     """
-    Check if every parcel in a parcellation is a connected component.
+    Check if every label in labels is a connected component.
 
     Parameters
     ----------
-        parcel: cluster labels, shape = [n_samples].
+        labels: cluster labels, shape = [n_samples].
         faces: contain triangles of brain surface.
 
     Returns
     -------
-        label list if a parcel is not a connected component, otherwise return [].
+        label list of nonconnected labels, if None, return [].
 
     Notes
     -----
-        1. the max label number in parcel should be assigned to the medial wall.
+        1. the max label number in labels should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    max_label = np.max(parcel)
+    max_label = np.max(labels)
     label_list = []
     for i in range(max_label):
-        vertexes = np.array(np.where(parcel == i))
+        vertexes = np.array(np.where(labels == i)).flatten()
         visited = []
-        neighbors = [vertexes[0][0]]
+        neighbors = [vertexes[0]]
 
         while neighbors:
             vertex = neighbors.pop(0)
@@ -179,3 +186,25 @@ def parcel_connected_component(parcel, faces):
                 label_list.append(i)
                 break
     return label_list
+
+
+def nonconnected_score(labels, faces):
+    """
+    Calculate the percentage of nonconnected component in labels.
+
+    Parameters
+    ----------
+        labels: cluster labels, shape = [n_samples].
+        faces: contain triangles of brain surface.
+
+    Returns
+    -------
+        nonconnected score of labels, 1 stands for every label is nonconnected, 0 for no nonconnected label.
+
+    Notes
+    -----
+        1. the max label number in labels should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
+    """
+    nonc_list = nonconnected_labels(labels, faces)
+    return len(nonc_list) / np.max(labels)
