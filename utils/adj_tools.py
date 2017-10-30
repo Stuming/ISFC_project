@@ -3,7 +3,46 @@ Provide tools for get or make matrix, faces, or other forms that reflect adjacen
 """
 import numpy as np
 from surfer import Surface
-from ATT.algorithm import surf_tools
+# FIXME import Surface may cause error:
+# FIXME     ValueError: API 'QString' has already been set to version 1.
+
+
+def _faces_to_edges(faces):
+    """
+    Build edges array from faces.
+    Parameters
+    ----------
+        faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+
+    Returns
+    -------
+        edges: array, edges of brain surface mesh, shape=(n_edges, 2)
+    """
+    from itertools import combinations
+    edges = []
+    for face in faces:
+        for edge in combinations(face, 2):
+            if edge not in edges:
+                edges.append(edge)
+    return edges
+
+
+def _edges_to_adjmatrix(edges):
+    """
+    Build edges array from faces.
+    Parameters
+    ----------
+        edges: edges of brain surface mesh, shape=(n_edges, 2)
+
+    Returns
+    -------
+        adj_matrix: adj matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
+    """
+    n_vertexes = np.max(edges) + 1
+    adj_matrix = np.zeros((n_vertexes, n_vertexes))
+    for edge in edges:
+        adj_matrix[edge[0], edge[1]] = 1
+    return adj_matrix
 
 
 def faces_to_adjmatrix(faces):
@@ -16,17 +55,14 @@ def faces_to_adjmatrix(faces):
 
     Returns
     -------
-        adjm: adj matrix that reflect linkages of (subj_id, hemi, surf), shape = (vert_num, vert_num).
+        adj_matrix: adj matrix that reflect linkages of (subj_id, hemi, surf), shape = (vert_num, vert_num).
 
     Examples
     --------
         faces = get_faces("fsaverage", "lh", "inflated")
         adjm = get_adjmatrix(faces)
     """
-    edges = surf_tools.extract_edge_from_faces(faces)
-    mk_adjm = surf_tools.GenAdjacentMatrix()
-    adjm = mk_adjm.from_edge(edges)
-    return adjm
+    return _edges_to_adjmatrix(_faces_to_edges(faces))
 
 
 def _get_geo(subj_id, hemi, surf):

@@ -4,7 +4,6 @@ Input file format: *.mgh (output format: *.mgh)
 the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
 """
 import os
-from scipy import stats
 import numpy as np
 
 
@@ -44,6 +43,8 @@ def corr(array1, array2, method_name="pearson"):
     -----
         1. if correlation coefficient is nan, then it would be assigned to 0.
     """
+    from scipy import stats
+
     if method_name == "pearson":
         r, pval = stats.pearsonr(array1, array2)
     elif method_name == "spearman":

@@ -1,9 +1,8 @@
 import os
 import numpy as np
-import nibabel as nib
 from utils.utils import check_dir
 from surfer import utils
-from surfer.utils import Surface
+from utils.adj_tools import get_coords
 
 
 def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
@@ -50,41 +49,32 @@ def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", he
     return True
 
 
-def cl_index(filepath, index_dict, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
+def cl_index(data, indexes, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
              update=False):
     """
     Create label by index from atlas file.
 
     Parameters
     ----------
-        filepath: should be atlas file path(like van essen map).
-        index_dict: dict that contain index and its region name.
+        data: should be data of atlas file(like van essen map).
+        indexes: collection of index, can be dict(with its region name) or list(indexes only).
         output_dir: set dir to save label, default is current dir.
         subj_id: specify the subject, default is 'fsaverage'.
         hemi: set hemisphere, default is 'lh'.
         map_surface: set map surface, default is 'inflated'.
         update: set to overwrite output file or not.
     """
-    check_dir(output_dir)
-    print("Output dir is: %s" % output_dir)
+    for index in indexes:
+        if isinstance(indexes, dict):
+            label_name = "%s-%s.label" % (indexes[index], hemi)
+        elif isinstance(indexes, list) or isinstance(indexes, np.ndarray):
+            label_name = "%i-%s.label" % (index, hemi)
+        else:
+            raise Exception("Excepted type of indexes: [dice, list, ndarray], receive: %s" % type(indexes))
 
-    for index in index_dict:
-        label_name = "%s-%s.label" % (index_dict[index], hemi)
-        label_path = os.path.join(output_dir, label_name)
-
-        if (not update) and os.path.exists(label_name):
-            print("Not updated: %s exists, file is not saved." % label_path)
-            continue
-
-        vertex = get_vertexes(filepath, index)
-        geo = Surface(subj_id, hemi, map_surface)
-        geo.load_geometry()
-
-        with open(label_path, "w") as f:
-            f.write("%d\n" % len(vertex))
-            for i in vertex[0]:
-                x, y, z = geo.coords[i]
-                f.write("%d  %f  %f  %f  0.000000\n" % (i, x, y, z))
+        vertex = np.where(data == index)[0]
+        cl_vertexes(vertex, label_name=label_name, output_dir=output_dir, subj_id=subj_id, hemi=hemi,
+                    map_surface=map_surface, update=update)
 
 
 def cl_vertexes(vertex_list, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
@@ -110,38 +100,17 @@ def cl_vertexes(vertex_list, label_name, output_dir=os.getcwd(), subj_id="fsaver
     check_dir(output_dir)
     print("Output dir is: %s" % output_dir)
 
-    label_name = "%s-%s.label" % (label_name, hemi)
     label_path = os.path.join(output_dir, label_name)
 
     if (not update) and os.path.exists(label_name):
         print("Not updated: %s exists, file is not saved." % label_path)
         return 0
 
-    geo = Surface(subj_id, hemi, map_surface)
-    geo.load_geometry()
+    coords = get_coords(subj_id, hemi, map_surface)
 
     with open(label_path, "w") as f:
         f.write("%d\n" % len(vertex_list))
         for i in vertex_list:
-            x, y, z = geo.coords[i]
+            x, y, z = coords[i]
             f.write("%d  %f  %f  %f  0.000000\n" % (i, x, y, z))
     return 1
-
-
-def get_vertexes(file_path, index):
-    """
-    Get vertexes by index in atlas file.
-
-    Parameters
-    ----------
-        file_path: should be atlas file path(like van essen map).
-        index: label index that want to get.
-
-    Returns
-    -------
-        vertexes: vertex list of index in atlas file.
-    """
-    f = nib.load(file_path)
-    img = f.get_data()[:, 0, 0]
-    vertexes = np.where(img == index)
-    return vertexes
