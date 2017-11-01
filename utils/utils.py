@@ -122,3 +122,42 @@ def mk_rand_lut(row, rand_range=(0,255), alpha=255):
         ltable[i, 3] = alpha
     return ltable
 
+
+def get_label_contour(labels, faces, contour_label=None):
+    """
+    Get contour line of labels based on faces.
+    Parameters
+    ----------
+        labels: labels of vertexes, shape = (n, 1), n is number of vertexes.
+        faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+        contour_label: set label to contour line.
+
+    Returns
+    -------
+        labels with contour line.
+
+    Notes
+    -----
+        1. the max label number in labels should be assigned to the medial wall.
+        2. data with the max label number will be omitted.
+        3. contour line would be setting to the same label as medial wall by default.
+    """
+    n_vertexes = np.max(labels)
+    if not contour_label:
+        contour_label = n_vertexes
+
+    # contour_vertexes = []
+    visited = []
+    for i in range(n_vertexes):
+        vertexes = np.where(labels == i)[0]
+        for vertex in vertexes:
+            visited.append(vertex)
+
+            for neigh in np.unique(faces[np.where(faces == vertex)[0]]):
+                if (neigh not in vertexes) and (not labels[neigh] == contour_label):
+                    # contour_vertexes.append(vertex)
+                    labels[vertex] = contour_label
+                    break
+
+    # labels[contour_vertexes] = contour_label
+    return labels
