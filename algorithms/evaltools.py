@@ -74,7 +74,7 @@ def homogeneity(data, labels):
     return np.mean(homo_list)
 
 
-def dice_mat(labels1, labels2):
+def dice_matrix(labels1, labels2):
     """
     Calculate dice similarity coefficient matrix of the inputs.
 
@@ -85,7 +85,7 @@ def dice_mat(labels1, labels2):
 
     Returns
     -------
-        dice matrix: array, ranges from (0, 1), shape = (label_number1, label_number2).
+        dice_mat: array, ranges from (0, 1), shape = (label_number1, label_number2).
 
     Notes
     -----
@@ -96,11 +96,11 @@ def dice_mat(labels1, labels2):
 
     row_num = np.int(np.max(labels1))
     column_num = np.int(np.max(labels2))
-    dice_matrix = np.zeros((row_num, column_num))
+    dice_mat = np.zeros((row_num, column_num))
     for i in range(row_num):
         for j in range(column_num):
-            dice_matrix[i, j] = 1 - dice(labels1 == i, labels2 == j)  # dice() measures dice dissimilarity
-    return np.nan_to_num(dice_matrix)
+            dice_mat[i, j] = 1 - dice(labels1 == i, labels2 == j)  # dice() measures dice dissimilarity
+    return np.nan_to_num(dice_mat)
 
 
 def dice_coef(labels1, labels2):
@@ -121,9 +121,9 @@ def dice_coef(labels1, labels2):
         1. the max label number in labels should be assigned to the medial wall.
         2. data with the max label number will be omitted.
     """
-    dm = dice_mat(labels1, labels2)
-    row_max = np.max(dm, axis=0)
-    column_max = np.max(dm, axis=1)
+    dice_mat = dice_matrix(labels1, labels2)
+    row_max = np.max(dice_mat, axis=0)
+    column_max = np.max(dice_mat, axis=1)
     dice_coefficient = (np.mean(row_max) + np.mean(column_max)) / 2
     return dice_coefficient
 

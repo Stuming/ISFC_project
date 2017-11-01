@@ -5,6 +5,7 @@ the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation
 """
 import os
 import numpy as np
+from NSNT.algorithms.evaltools import dice_matrix
 
 
 def match_datashape(data1, data2):
@@ -100,7 +101,7 @@ def check_dir(dirpath, new=True):
     return 1
 
 
-def mk_rand_lut(row, rand_range=(0,255), alpha=255):
+def mk_rand_lut(row, rand_range=(0, 255), alpha=255):
     """
     Make random lookup table, use as colormap.
 
@@ -146,7 +147,6 @@ def get_label_contour(labels, faces, contour_label=None):
     if not contour_label:
         contour_label = n_vertexes
 
-    # contour_vertexes = []
     visited = []
     for i in range(n_vertexes):
         vertexes = np.where(labels == i)[0]
@@ -155,9 +155,89 @@ def get_label_contour(labels, faces, contour_label=None):
 
             for neigh in np.unique(faces[np.where(faces == vertex)[0]]):
                 if (neigh not in vertexes) and (not labels[neigh] == contour_label):
-                    # contour_vertexes.append(vertex)
                     labels[vertex] = contour_label
                     break
-
-    # labels[contour_vertexes] = contour_label
     return labels
+
+
+def relabel(labels1, labels2, reorder=False):
+    """
+    Relabel labels1 and labels2 to make two most overlapped labels have the same label number,
+      new_label_number = parcel_num + label_number of labels1,
+      otherwise label number would be kept.
+
+    Judging whether overlapped:
+      If a label in labels1 has max dice coef with the label in labels, and vice versa, then
+      these two labels would be judged as the most overlapped label.
+
+    Parameters
+    ----------
+        labels1: cluster labels, shape = [n_samples].
+        labels2: cluster labels, shape = [n_samples].
+        reorder: since relabel makes label number discontinuous and same label number may not
+                 be able to have the same color in colormap, it would be helpful to reorder
+                 label number before display.
+                 Reorder makes label number grow from 0 if two labels are same, otherwise
+                 reduces from 'parcel_num - 1'.
+
+    Returns
+    -------
+        relabels1: cluster labels after relabeling, shape = [n_samples].
+        relabels2: cluster labels after relabeling, shape = [n_samples].
+
+    Notes
+    -----
+        1. Label of medial wall would not be changed, whether reorder or not.
+    """
+    dice_mat = dice_matrix(labels1, labels2)
+    parcel_num = int(np.max(labels1))
+
+    # if dice_mat[i,j]==dice_mat[j,i], this two labels([i,j]) would have same label number.
+    for i in range(parcel_num):
+        j = np.where(dice_mat[i, :] == np.max(dice_mat[i, :]))[0][0]
+        max_dice_vert = np.where(dice_mat[:, j] == np.max(dice_mat[:, j]))[0][0]
+        if i == max_dice_vert:
+            print("Relabel %i & %i into %i" % (i, j, parcel_num + i))
+            labels1[np.where(labels1 == i)] = parcel_num + 1 + i
+            labels2[np.where(labels2 == j)] = parcel_num + 1 + i
+    if reorder:
+        labels1_ro = _reorder(labels1, parcel_num)
+        labels2_ro = _reorder(labels2, parcel_num)
+        return labels1_ro, labels2_ro
+    return labels1, labels1
+
+
+def _reorder(labels, parcel_num):
+    """
+    Since relabel makes label number discontinuous and same label number may not be able to
+      have the same color in colormap, it would be helpful to reorder label number before display.
+      Reorder makes label number grow from 0 if two labels are same(label number > parcel_num),
+      otherwise(label number < parcel_num) reduces from 'parcel_num - 1'.
+
+    Parameters
+    ----------
+        labels: cluster labels, shape = [n_samples].
+        parcel_num: number of labels, which equal to label number of medial wall.
+
+    Returns
+    -------
+        labels_ro: cluster labels after reordering, shape = [n_samples].
+
+    Notes
+    -----
+        1. Label of medial wall would not be changed, whether reorder or not.
+    """
+    label_num = np.unique(labels)
+    labels_ro = np.copy(labels)
+    i = 0
+    j = 0
+    for label in label_num:
+        if label >= parcel_num + 1:
+            labels_ro[np.where(labels == label)] = i
+            i = i + 1
+        else:
+            labels_ro[np.where(labels == label)] = parcel_num - 1 - j
+            j = j + 1
+    print("Number of matched label: %i" % i)
+    print("Number of unmatched label: %i" % j)
+    return labels_ro
