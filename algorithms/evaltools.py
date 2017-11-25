@@ -60,17 +60,20 @@ def homogeneity(data, labels):
     """
     from .fctools import wsfc
 
-    max_label = np.int(np.max(labels))
-    homo_list = np.zeros(max_label)
-    for label in range(max_label):
+    # here we use unique labels for loop instead of max label number, to avoid error
+    # caused by discontinuity labels which may lead to nan in result.
+    label_list = np.unique(labels)
+    homo_list = np.zeros_like(label_list, dtype=np.float64)
+
+    for i, label in enumerate(label_list):
         vert_list = np.array(np.where(labels == label))[0]
         vert_num = vert_list.shape[0]
         fcmap = np.nan_to_num(wsfc(data[vert_list, :]))
-        if fcmap.shape[0] == 1:  # some labels may be assigned to only one vertex.
+        if vert_num == 1:  # some labels may be assigned to only one vertex.
             homo_list[label] = 1
         else:
             # ((np.sum(fcmap) - vert_num) / 2) / (vert_num * (vert_num - 1) / 2)
-            homo_list[label] = (np.sum(fcmap) - vert_num) / (vert_num * (vert_num - 1))
+            homo_list[i] = (np.sum(fcmap) - vert_num) / (vert_num * (vert_num - 1))
     return np.mean(homo_list)
 
 
@@ -207,4 +210,5 @@ def nonconnected_score(labels, faces):
         2. data with the max label number will be omitted.
     """
     nonc_list = nonconnected_labels(labels, faces)
+    print(nonc_list)
     return len(nonc_list) / np.max(labels)
