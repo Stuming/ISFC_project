@@ -26,37 +26,6 @@ def match_datashape(data1, data2):
     return False
 
 
-def corr(array1, array2, method_name="pearson"):
-    """
-    Calculate correlation between array1 and array2.
-
-    Parameters
-    ----------
-        array1: 1-D array
-        array2: 1-D array
-        method_name: `pearson` or `spearman` correlation
-
-    Returns
-    -------
-        r: correlation coefficient of array1 and array2.
-
-    Notes
-    -----
-        1. if correlation coefficient is nan, then it would be assigned to 0.
-    """
-    from scipy import stats
-
-    if method_name == "pearson":
-        r, pval = stats.pearsonr(array1, array2)
-    elif method_name == "spearman":
-        r, pval = stats.spearmanr(array1, array2)
-    else:
-        raise Exception("Wrong correlation method name: %s." % method_name)
-    if np.isnan(r):
-        r = 0
-    return r
-
-
 def check_list(list_data):
     """
     Check type of list_data.
@@ -124,40 +93,42 @@ def mk_rand_lut(row, rand_range=(0, 255), alpha=255):
     return ltable
 
 
-def get_label_contour(labels, faces, contour_label=None):
+def get_label_contour(labels, faces, medial_wall_label=None):
     """
     Get contour line of labels based on faces.
+
     Parameters
     ----------
-        labels: labels of vertexes, shape = (n, 1), n is number of vertexes.
+        labels: labels of vertexes, shape = [n_samples].
         faces: triangles mesh of brain surface, shape=(n_mesh, 3).
-        contour_label: set label to contour line.
+        medial_wall_label: label number of medial wall of labels, default uses the max label number.
 
     Returns
     -------
-        labels with contour line.
+        contour list that contain contour vertexes.
 
     Notes
     -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
-        3. contour line would be setting to the same label as medial wall by default.
+        1. if not specify medial_wall_label, the max label number will be taken as medial_wall_label.
+        2. contour of medial_wall_label will be omitted.
     """
-    n_vertexes = np.max(labels)
-    if not contour_label:
-        contour_label = n_vertexes
+    if not medial_wall_label:
+        medial_wall_label = np.max(labels)
 
+    label_list = np.unique(labels)
     visited = []
-    for i in range(n_vertexes):
+    contour_list = []
+    for i, label in enumerate(label_list):
         vertexes = np.where(labels == i)[0]
         for vertex in vertexes:
             visited.append(vertex)
 
             for neigh in np.unique(faces[np.where(faces == vertex)[0]]):
-                if (neigh not in vertexes) and (not labels[neigh] == contour_label):
-                    labels[vertex] = contour_label
+                if (neigh not in vertexes) and (not labels[neigh] == medial_wall_label):
+                    labels[vertex] = medial_wall_label
+                    contour_list.append(vertex)
                     break
-    return labels
+    return contour_list
 
 
 def relabel(labels1, labels2, reorder=False, return_matched_number=False):
@@ -191,7 +162,8 @@ def relabel(labels1, labels2, reorder=False, return_matched_number=False):
 
     Notes
     -----
-        1. Label of medial wall would not be changed, whether reorder or not.
+        1. medial wall label should be the max label of labels.
+        2. label of medial wall would not be changed, whether reorder or not.
     """
     dice_mat = dice_matrix(labels1, labels2)
     parcel_num = int(np.max(labels1))
@@ -237,13 +209,13 @@ def _reorder(labels, parcel_num):
 
     Notes
     -----
-        1. Label of medial wall would not be changed, whether reorder or not.
+        1. medial wall label should be the max label of labels.
+        2. label of medial wall would not be changed, whether reorder or not.
     """
-    label_num = np.unique(labels)
     labels_ro = np.copy(labels)
     i = 0
     j = 0
-    for label in label_num:
+    for label in np.unique(labels):
         if label >= parcel_num + 1:
             labels_ro[np.where(labels == label)] = i
             i = i + 1
