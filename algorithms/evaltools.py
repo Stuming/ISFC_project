@@ -2,6 +2,7 @@
 Used to evaluate clusters or parcellations.
 """
 import numpy as np
+from NSNT.utils.adj_tools import nonconnected_labels
 
 
 def ari(labels1, labels2):
@@ -149,48 +150,6 @@ def silhouette_coef(data, labels):
     return silhouette_score(data, labels)
 
 
-def nonconnected_labels(labels, faces):
-    """
-    Check if every label in labels is a connected component.
-
-    Parameters
-    ----------
-        labels: cluster labels, shape = [n_samples].
-        faces: contain triangles of brain surface.
-
-    Returns
-    -------
-        label list of nonconnected labels, if None, return [].
-
-    Notes
-    -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
-    """
-    max_label = np.max(labels)
-    label_list = []
-    for i in range(max_label):
-        vertexes = np.array(np.where(labels == i)).flatten()
-        visited = []
-        neighbors = [vertexes[0]]
-
-        while neighbors:
-            vertex = neighbors.pop(0)
-            visited.append(vertex)
-            neigh = np.unique(faces[np.where(faces == vertex)[0]])
-            for vert in neigh:
-                if vert in vertexes:
-                    if (vert not in visited) and (vert not in neighbors):
-                            neighbors.append(vert)
-
-        for vert in vertexes:
-            if vert not in visited:
-                print("Label %i is not a connected component." % i)
-                label_list.append(i)
-                break
-    return label_list
-
-
 def nonconnected_score(labels, faces):
     """
     Calculate the percentage of nonconnected component in labels.
@@ -211,4 +170,4 @@ def nonconnected_score(labels, faces):
     """
     nonc_list = nonconnected_labels(labels, faces)
     print(nonc_list)
-    return len(nonc_list) / np.max(labels)
+    return len(nonc_list) / len(np.unique(labels))
