@@ -4,8 +4,21 @@ Input file format: *.mgh (output format: *.mgh)
 the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
 """
 import os
+import functools
 import numpy as np
-from NSNT.algorithms.evaltools import dice_matrix
+from time import time
+from ..algorithms.evaltools import dice_matrix
+
+
+def running_time(func):
+    @functools.wraps(func)
+    def wrapper(*args, **kw):
+        print("Running {}".format(func.__name__))
+        t0 = time()
+        p = func(*args, **kw)
+        print("Spend time: %f" % (time() - t0))
+        return p
+    return wrapper
 
 
 def match_datashape(data1, data2):

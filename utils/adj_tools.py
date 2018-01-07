@@ -134,6 +134,32 @@ def get_coords(subj_id, hemi, surf):
     return _get_geo(subj_id, hemi, surf).coords
 
 
+def get_adjmatrix(subj_id, hemi, surf, mask=None):
+    """
+    Get adjacency matrix by (subj_id, hemi, surf), and apply mask if it is given.
+
+    Parameters
+    ----------
+        subj_id: subject id (eg. "fsaverage").
+        hemi: hemisphere (eg. "lh").
+        surf: surface (eg. "inflated").
+        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+
+    Returns
+    -------
+        adjmatrix: adjacency matrix of (subj_id, hemi, surf), if mask=None, then shape = (n_vertexes, n_vertexes).
+
+    Examples
+    --------
+        adjmatrix = get_adjmatrix("fsaverage", "lh", "inflated")
+    """
+    adj = faces_to_adjmatrix(get_faces(subj_id, hemi, surf))
+    if mask:
+        adj = np.delete(adj, mask, axis=0)
+        adj = np.delete(adj, mask, axis=1)
+    return 0.5 * (adj + adj.T)
+
+
 def mk_label_adjmatrix(label_image, adjmatrix):
     """
     Calculate adjacent matrix of labels in label_image, based on adjacent matrix of vertexes.
