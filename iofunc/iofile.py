@@ -1,6 +1,6 @@
 import nibabel as nib
 import os
-from utils.utils import check_dir
+from ..utils.utils import check_dir
 
 # TODO specify this function
 # TODO def load_file(filepath): load file based on postfix

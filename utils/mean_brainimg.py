@@ -2,7 +2,7 @@
 Input result name would like: avg_data_except_S001_run1.mgh
 means average all data in sessidlist except S001."""
 import os
-from iofunc.iofile import load_imgfile, save_img
+from ..iofunc.iofile import load_imgfile, save_img
 
 
 # TODO modify input to make sure this function work whether input raw data path or result path.

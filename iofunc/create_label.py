@@ -1,8 +1,8 @@
 import os
 import numpy as np
-from utils.utils import check_dir
-from surfer import utils
-from utils.adj_tools import get_coords
+from ..utils.utils import check_dir
+from ..utils.adj_tools import get_coords
+from surfer.utils import coord_to_label
 
 
 def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
@@ -44,8 +44,8 @@ def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", he
     if (not update) and os.path.exists(label_file):
         print("Not updated: %s exists, file is not saved." % label_file)
         return False
-    utils.coord_to_label(subj_id, coord, hemi=hemi, label=label_name, n_steps=n_steps, map_surface=map_surface,
-                         coord_as_vert=state)
+    coord_to_label(subj_id, coord, hemi=hemi, label=label_name, n_steps=n_steps, map_surface=map_surface,
+                   coord_as_vert=state)
     return True
 
 

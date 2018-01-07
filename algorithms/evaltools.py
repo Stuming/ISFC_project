@@ -2,7 +2,7 @@
 Used to evaluate clusters or parcellations.
 """
 import numpy as np
-from NSNT.utils.adj_tools import nonconnected_labels
+from ..utils.adj_tools import nonconnected_labels
 
 
 def ari(labels1, labels2):
