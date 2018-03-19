@@ -35,6 +35,7 @@ def faces_to_edges(faces):
 def edges_to_adjmatrix(edges):
     """
     Build edges array from faces.
+
     Parameters
     ----------
         edges: edges of brain surface mesh, shape=(n_edges, 2)
@@ -178,8 +179,7 @@ def mk_label_adjmatrix(label_image, adjmatrix):
         1. for large number of vertexes, this method may cause memory error, try to use mk_label_adjfaces().
     """
     labels = np.unique(label_image)
-    l = len(labels)
-    n = len(label_image)
+    l, n = len(labels), len(label_image)
     temp_matrix = np.zeros((l, n))
     label_adjmatrix = np.zeros((l, l))
     for i, label in enumerate(labels):

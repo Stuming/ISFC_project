@@ -2,7 +2,7 @@ import numpy as np
 from .adj_tools import get_faces, faces_to_adjmatrix
 
 
-class matrix_function:
+class MatrixFunction:
     """
     This class records operation that be used to matrix, and can query operation state.
     """
@@ -84,6 +84,7 @@ class matrix_function:
             subj_id: subject id that get adj constrain matrix from.
             hemi: hemi that do things as above.
             surf: surf that do things as above.
+            adjm: adjacency matrix that was applied, if not given, it will be calculalted based on surf params.
 
         Returns
         -------
@@ -118,11 +119,11 @@ class matrix_function:
         Parameters
         ----------
             l: exp index.
-            rsmatrix = exp(-1*l*(1-rmatrix))
+            smatrix: similarity matrix.
 
         Returns
         -------
-            rsmatrix: rescaled matrix.
+            rsmatrix: rescaled matrix, rsmatrix = exp(-1*l*(1-smatrix)).
         """
         state = "exp_rs"
         if self.query_state(state):

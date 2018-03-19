@@ -52,7 +52,8 @@ def homogeneity(data, labels):
 
     Returns
     -------
-        homogeneity: ranges from (0.0, 1.0).
+        label_list: a sorted array that contain labels.
+        homo_list: homogeneity list that corresponding to label_list.
 
     Notes
     -----
@@ -71,11 +72,11 @@ def homogeneity(data, labels):
         vert_num = vert_list.shape[0]
         fcmap = np.nan_to_num(wsfc(data[vert_list, :]))
         if vert_num == 1:  # some labels may be assigned to only one vertex.
-            homo_list[label] = 1
+            homo_list[i] = 1
         else:
             # ((np.sum(fcmap) - vert_num) / 2) / (vert_num * (vert_num - 1) / 2)
             homo_list[i] = (np.sum(fcmap) - vert_num) / (vert_num * (vert_num - 1))
-    return np.mean(homo_list)
+    return label_list, homo_list
 
 
 def dice_matrix(labels1, labels2):
@@ -98,8 +99,7 @@ def dice_matrix(labels1, labels2):
     """
     from scipy.spatial.distance import dice
 
-    row_num = np.int(np.max(labels1))
-    column_num = np.int(np.max(labels2))
+    row_num, column_num = np.int(np.max(labels1)), np.int(np.max(labels2))
     dice_mat = np.zeros((row_num, column_num))
     for i in range(row_num):
         for j in range(column_num):
@@ -126,8 +126,7 @@ def dice_coef(labels1, labels2):
         2. data with the max label number will be omitted.
     """
     dice_mat = dice_matrix(labels1, labels2)
-    row_max = np.max(dice_mat, axis=0)
-    column_max = np.max(dice_mat, axis=1)
+    row_max, column_max = np.max(dice_mat, axis=0), np.max(dice_mat, axis=1)
     dice_coefficient = (np.mean(row_max) + np.mean(column_max)) / 2
     return dice_coefficient
 

@@ -21,24 +21,6 @@ def running_time(func):
     return wrapper
 
 
-def match_datashape(data1, data2):
-    """
-    Check if the shape of data1 and data2 is equal.
-
-    Parameters
-    ----------
-        data1: data that should be checked .
-        data2: data that should be checked.
-
-    Returns
-    -------
-        boolean value, `True` stands for match, `False` stands for mismatch.
-    """
-    if data1.get_shape() == data2.get_shape():
-        return True
-    return False
-
-
 def check_list(list_data):
     """
     Check type of list_data.
