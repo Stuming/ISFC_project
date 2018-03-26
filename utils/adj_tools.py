@@ -32,46 +32,55 @@ def faces_to_edges(faces):
     return edges
 
 
-def edges_to_adjmatrix(edges):
+def edges_to_adjmatrix(edges, sym=True):
     """
     Build edges array from faces.
 
     Parameters
     ----------
-        edges: edges of brain surface mesh, shape=(n_edges, 2)
+        sym: make adjmatrix symmetrical, default is True.
 
     Returns
     -------
-        adj_matrix: adj matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
+        adjm: adjm matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
     """
     vertexes = np.unique(edges)
     n_vertexes = len(vertexes)
-    adj_matrix = np.zeros((n_vertexes, n_vertexes))
+    adjm = np.zeros((n_vertexes, n_vertexes))
     for edge in edges:
-        adj_matrix[np.where(vertexes == edge[0]), np.where(vertexes == edge[1])] = 1
-    adj_matrix[np.where((adj_matrix + adj_matrix.T) > 0)] = 1
-    return adj_matrix
+        adjm[np.where(vertexes == edge[0]), np.where(vertexes == edge[1])] = 1
+    adjm[np.where((adjm + adjm.T) > 0)] = 1
+    if sym:
+        adjm = 0.5 * (adjm + adjm.T)
+    return adjm
 
 
-def faces_to_adjmatrix(faces):
+def faces_to_adjmatrix(faces, mask=None, sym=True):
     """
     Build adjacency matrix by faces.
 
     Parameters
     ----------
         faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+        sym: make adjmatrix symmetrical, default is True.
+
 
     Returns
     -------
-        adj_matrix: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
+        adjm: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
 
     Examples
     --------
-        from NSNT.utils.adj_tools import get_faces, get_adjmatrix
-        faces = get_faces("fsaverage", "lh", "inflated")
-        adjm = get_adjmatrix(faces)
+        >>>from NSNT.utils.adj_tools import get_faces, get_adjmatrix
+        >>>faces = get_faces("fsaverage", "lh", "inflated")
+        >>>adjm = get_adjmatrix(faces)
     """
-    return edges_to_adjmatrix(faces_to_edges(faces))
+    adjm = edges_to_adjmatrix(faces_to_edges(faces), sym=sym)
+    if mask:
+        adjm = np.delete(adjm, mask, axis=0)
+        adjm = np.delete(adjm, mask, axis=1)
+    return adjm
 
 
 def _get_geo(subj_id, hemi, surf):
