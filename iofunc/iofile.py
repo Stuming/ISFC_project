@@ -1,6 +1,5 @@
 import nibabel as nib
 import os
-from ..utils.utils import check_dir
 
 # TODO specify this function
 # TODO def load_file(filepath): load file based on postfix
@@ -30,7 +29,8 @@ def save_img(data_dir, data_type, filename, data, affine):
     """Save data into data_dir/data_type/filename.
     Data is saved as nifti format."""
     result_dir = os.path.join(data_dir, data_type)
-    check_dir(result_dir)
+    if not os.path.exists(result_dir):
+        os.makedirs(result_dir)
     filepath = os.path.join(result_dir, filename)
     data_file = nib.Nifti1Image(data, affine)
     nib.save(data_file, filepath)

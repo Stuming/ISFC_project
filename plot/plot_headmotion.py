@@ -56,6 +56,7 @@ def plot_headmotion(mcdat, fig_show=True, save_path=None, title_id=None, update=
             print("Not updated: %s exists, figure is not saved." % save_path)
         else:
             plt.savefig(save_path)
+            print("Save fig: %s" % save_path)
 
     if fig_show:
         plt.show()
