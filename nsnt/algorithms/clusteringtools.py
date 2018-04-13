@@ -1,7 +1,10 @@
 import numpy as np
 from scipy.spatial.distance import cdist
+from sklearn.metrics.pairwise import rbf_kernel
+from sklearn.neighbors import kneighbors_graph
 from sklearn.cluster import KMeans, AgglomerativeClustering, SpectralClustering
-from NSNT.utils.utils import running_time
+
+from nsnt.utils.utils import running_time
 
 
 class Clustering(object):
@@ -18,6 +21,8 @@ class Clustering(object):
     def __init__(self, data, mask):
         self.data = np.nan_to_num(data)
         self.mask = mask
+        self.method = None
+        self.label = None
 
         if self.mask:
             self._apply_mask()
@@ -39,6 +44,9 @@ class Clustering(object):
         else:
             raise Exception("Wrong method name.")
 
+        self._rebuild_label(parcel_num)
+        self.show_labelinfo()
+
     @running_time
     def _do_kmeans(self, n_clusters):
         """
@@ -52,14 +60,10 @@ class Clustering(object):
         ------
             label: clustering result, shape: (n_vertexes,)
         """
-        self.method = 'KMeans'
-
         kmeans = KMeans(n_clusters=n_clusters)
         kmeans.fit(self.data)
         self.label = kmeans.predict(self.data)
 
-        self._rebuild_label(n_clusters)
-        self.show_labelinfo()
         return self.label
 
     @running_time
@@ -76,8 +80,6 @@ class Clustering(object):
         ------
             label: clustering result, shape: (n_vertexes,)
         """
-        self.method = 'hierarchy clustering'
-
         if adj is not None:
             model = AgglomerativeClustering(n_clusters=n_clusters, linkage="ward", connectivity=adj)
         else:
@@ -109,7 +111,6 @@ class Clustering(object):
         ------
             label: clustering result, shape: (n_vertexes,)
         """
-        self.method = 'spectral clustering'
         beta = 0.1  # used in spectral clustering
         smat = cal_edist_mat(self.data, beta=beta)
 
@@ -143,6 +144,9 @@ class Clustering(object):
         """
         Apply self.mask onto self.data, remove vertexes that contain 0 value in mask array.
         """
+        if self.data.shape[0] != self.mask.shape[0]:
+            print('Shape of data and mask is not match, apply mask failed.')
+            return -1
         zeros = np.where(self.mask == 0)[0]
         data = np.delete(self.data, zeros, axis=0)
         del_num = self.data.shape[0] - data.shape[0]
@@ -167,12 +171,22 @@ class Clustering(object):
 
 
 @running_time
-def cal_knn_mat(data, n_neighbors=10):
-    from sklearn.metrics.pairwise import rbf_kernel
-    from sklearn.neighbors import kneighbors_graph
+def cal_knn_mat(data, k=10):
+    """
+    Find k nearest neighbor of data and return knn matrix. For more information,
+        see sklearn.neighbors.kneighbors_graph
 
+    Parameters
+    ----------
+        data: input 2-d array.
+        k:  the number of nearest neighbors, default is 10.
+
+    Return
+    ------
+        knn_mat: k nearest neighbor matrix.
+    """
     rbf_mat = rbf_kernel(data)
-    nbrs = kneighbors_graph(X=data, n_neighbors=n_neighbors)
+    nbrs = kneighbors_graph(X=data, n_neighbors=k)
     knn_mat = nbrs.toarray() * rbf_mat
     knn_mat = 0.5 * (knn_mat + knn_mat.T)
     # print("gamma: {}".format(np.mean(np.min(rbf_mat[np.where(rbf_mat != 0)], axis=0))))
