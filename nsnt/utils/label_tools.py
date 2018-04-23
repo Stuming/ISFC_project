@@ -1,5 +1,5 @@
 import numpy as np
-from NSNT.algorithms.evaltools import dice_matrix
+from nsnt.algorithms.evaltools import dice_matrix
 
 
 def get_label_contour(labels, faces, medial_wall_label=None):
@@ -80,24 +80,20 @@ def relabel(labels1, labels2, reorder=False, return_matched_number=False):
 
     # if dice_mat[i,j]==dice_mat[j,i], this two labels([i,j]) would have same label number.
     for i in range(parcel_num):
-        j = np.where(dice_mat[i, :] == np.max(dice_mat[i, :]))[0][0]
-        max_dice_vert = np.where(dice_mat[:, j] == np.max(dice_mat[:, j]))[0][0]
+        j = np.argmax(dice_mat[i, :])
+        max_dice_vert = np.argmax(dice_mat[:, j])
         if i == max_dice_vert:
             print("Relabel %i & %i into %i" % (i, j, parcel_num + i))
             labels1[np.where(labels1 == i)] = parcel_num + 1 + i
             labels2[np.where(labels2 == j)] = parcel_num + 1 + i
             matched_number = matched_number + 1
     if reorder:
-        labels1_ro = _reorder(labels1, parcel_num)
-        labels2_ro = _reorder(labels2, parcel_num)
-
-        if return_matched_number:
-            return labels1_ro, labels2_ro, matched_number
-        return labels1_ro, labels2_ro
+        labels1 = _reorder(labels1, parcel_num)
+        labels2 = _reorder(labels2, parcel_num)
 
     if return_matched_number:
-        return labels1, labels1, matched_number
-    return labels1, labels1
+        return labels1, labels2, matched_number
+    return labels1, labels2
 
 
 def _reorder(labels, parcel_num):
@@ -138,3 +134,65 @@ def _reorder(labels, parcel_num):
     print("Number of matched label: %i" % i)
     print("Number of unmatched label: %i" % j)
     return labels_ro
+
+
+def reglabel(baselabels, adjustlabels, return_matched_number=False, show_info=False):
+    """
+    Register labels2 to labels1 which makes the most overlapped labels have the same label number as labels1,
+      new_label_number = parcel_num + label_number of labels1,
+      otherwise label number would be kept.
+
+    Judging whether overlapped:
+      If a label in labels1 has max dice coef with the label in labels, and vice versa, then
+      these two labels would be judged as the most overlapped label.
+
+    Parameters
+    ----------
+        baselabels: cluster labels, shape = [n_samples].
+        adjustlabels: cluster labels, shape = [n_samples].
+        return_matched_number: return marched number for other analysis, default is False.
+
+    Returns
+    -------
+        relabels1: cluster labels after relabeling, shape = [n_samples].
+                   if 'reorder=True', return labels after reordering.
+        relabels2: cluster labels after relabeling, shape = [n_samples].
+                   if 'reorder=True', return labels after reordering.
+        matched_number: if 'return_matched_number=True', return number of matched labels.
+
+    Notes
+    -----
+        1. medial wall label should be the max label of labels.
+        2. label of medial wall would not be changed, whether reorder or not.
+    """
+    dice_mat = dice_matrix(baselabels, adjustlabels)
+    assert dice_mat.ndim == 2, 'Dice mat should be 2-dimensional, please fix dice_matrix() function.'
+
+    parcel_num = int(np.max(baselabels))
+    matched_number = 0
+    reglabels = adjustlabels + parcel_num + 1
+    # hack reglabels to make labels of medial wall match and not count in matched number.
+    reglabels[np.where(reglabels == np.max(reglabels))] = parcel_num
+    # if dice_mat[i,j]==dice_mat[j,i], this two labels([i,j]) would have same label number.
+    for i in range(parcel_num):
+        j = np.argmax(dice_mat[i, :])
+        max_dice_vert = np.argmax(dice_mat[:, j])
+        if i == max_dice_vert:
+            if show_info:
+                print("Relabel %i & %i into %i" % (i, j, i))
+            reglabels[np.where(adjustlabels == j)] = i
+            matched_number = matched_number + 1
+
+    # modify labels that larger than parcel_num in labels2_reg
+    unique_labels = np.unique(reglabels)
+    last_index = len(unique_labels) - 1
+    if unique_labels[last_index] > parcel_num:
+        for i in range(parcel_num):
+            if i not in unique_labels:
+                reglabels[np.where(reglabels == unique_labels[last_index])] = i
+                unique_labels[last_index] = i
+                last_index -= 1
+
+    if return_matched_number:
+        return baselabels, reglabels, matched_number
+    return baselabels, reglabels
