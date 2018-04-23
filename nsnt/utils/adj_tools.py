@@ -72,7 +72,7 @@ def faces_to_adjmatrix(faces, mask=None, sym=True):
 
     Examples
     --------
-        >>>from NSNT.utils.adj_tools import get_faces, get_adjmatrix
+        >>>from nsnt.utils.adj_tools import get_faces, get_adjmatrix
         >>>faces = get_faces("fsaverage", "lh", "inflated")
         >>>adjm = get_adjmatrix(faces)
     """
@@ -291,7 +291,7 @@ def get_verts_edges(verts, edges):
     return verts_edges_rde
 
 
-def nonconnected_labels(labels, faces):
+def nonconnected_labels(labels, faces, showinfo=False):
     """
     Check if every label in labels is a connected component.
 
@@ -299,6 +299,7 @@ def nonconnected_labels(labels, faces):
     ----------
         labels: cluster labels, shape = [n_samples].
         faces: contain triangles of brain surface.
+        showinfo: whether print details or not, default is False.
 
     Returns
     -------
@@ -327,7 +328,8 @@ def nonconnected_labels(labels, faces):
 
         for vert in vertexes:
             if vert not in visited:
-                print("Label %i is not a connected component." % i)
+                if showinfo:
+                    print("Label %i is not a connected component." % i)
                 label_list.append(i)
                 break
     return label_list
@@ -369,7 +371,7 @@ def connected_conponents_labeling(vertexes, faces):
     return marks
 
 
-def merge_small_parts(data, labels, faces, parcel_size):
+def merge_small_parts(data, labels, faces, parcel_size, showinfo=False):
     """
     Merge small nonconnected parts of labels to its most correlated neighbor.
 
@@ -384,6 +386,7 @@ def merge_small_parts(data, labels, faces, parcel_size):
         faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
         parcel_size: vertex number in a connected component used as threshold, if size of a parcel smaller than
                      parcel_size, then this parcel will be merged.
+        showinfo: whether print details or not, default is False.
 
     Return
     ------
@@ -397,7 +400,8 @@ def merge_small_parts(data, labels, faces, parcel_size):
 
         for m in np.unique(marks):
             verts = vertexes[np.where(marks == m)]
-            print("small cluster: {0}: {1}: {2}".format(nonc_label, m, verts.shape))
+            if showinfo:
+                print("small cluster: {0}: {1}: {2}".format(nonc_label, m, verts.shape))
 
             if verts.shape[0] < parcel_size:
                 verts_data = np.mean(data[verts], axis=0)
@@ -412,25 +416,27 @@ def merge_small_parts(data, labels, faces, parcel_size):
                     if neigh_corr > temp_corr:
                         temp_corr = neigh_corr
                         labelid = neigh_label
-                print("Set label {0} to verts, correlation: {1}.".format(labelid, temp_corr))
+                if showinfo:
+                    print("Set label {0} to verts, correlation: {1}.".format(labelid, temp_corr))
                 result_label[verts] = labelid
     return result_label
 
 
-def split_connected_components(labels, faces):
+def split_connected_components(labels, faces, showinfo=False):
     """
-    Split connected components in same label into defferent labels.
+    Split connected components in same label into different labels.
 
     Parameters
     ----------
         labels: labeling of all vertexes, shape = (n_vertexes, ).
         faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+        showinfo: whether print details or not, default is False.
 
     Return
     ------
         result_label: labels after spliting connected components in same label.
     """
-    nonc_labels = nonconnected_labels(labels, faces)
+    nonc_labels = nonconnected_labels(labels, faces, showinfo)
     new_label = np.max(labels) + 1
     result_label = np.copy(labels)
     for nonc_label in nonc_labels:
@@ -439,9 +445,10 @@ def split_connected_components(labels, faces):
 
         for m in np.unique(marks):
             verts = vertexes[np.where(marks == m)]
-            print("small cluster: {0}: {1}: {2}".format(nonc_label, m, verts.shape))
+            if showinfo:
+                print("small cluster: {0}: {1}: {2}".format(nonc_label, m, verts.shape))
             if m > 1:  # keep label of group m==1.
                 result_label[verts] = new_label
                 new_label = new_label + 1
-    print("Label number: {0}".format(np.max(result_label)))
+    print("Label number after processing: {0}".format(np.max(result_label)))
     return result_label
