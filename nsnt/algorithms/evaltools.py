@@ -2,7 +2,11 @@
 Used to evaluate clusters or parcellations.
 """
 import numpy as np
-from ..utils.adj_tools import nonconnected_labels
+try:
+    from nsnt.utils.adj_tools import nonconnected_labels
+except ValueError:
+    print('ValueError: API \'QDate\' has already been set to version 1')
+    print('Function \'nonconnected_score\' is unavailable.')
 
 
 def ari(labels1, labels2):

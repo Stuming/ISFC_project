@@ -335,9 +335,9 @@ def nonconnected_labels(labels, faces, showinfo=False):
     return label_list
 
 
-def connected_conponents_labeling(vertexes, faces):
+def connected_components_labeling(vertexes, faces):
     """
-    Finding connected_conponents of vertexes according to its faces.
+    Finding connected_components of vertexes according to its faces.
 
     Parameters
     ----------
@@ -352,6 +352,9 @@ def connected_conponents_labeling(vertexes, faces):
     marks = np.zeros_like(vertexes)
 
     for vertex in vertexes:
+        # since labeling would make marks value change,
+        # there is no need relabel vertex which has already
+        # be labeled.
         if marks[np.where(vertexes == vertex)[0]] != 0:
             continue
 
@@ -396,7 +399,7 @@ def merge_small_parts(data, labels, faces, parcel_size, showinfo=False):
     result_label = np.copy(labels)
     for nonc_label in nonc_labels:
         vertexes = np.where(labels == nonc_label)[0]
-        marks = connected_conponents_labeling(vertexes, faces)
+        marks = connected_components_labeling(vertexes, faces)
 
         for m in np.unique(marks):
             verts = vertexes[np.where(marks == m)]
@@ -441,7 +444,7 @@ def split_connected_components(labels, faces, showinfo=False):
     result_label = np.copy(labels)
     for nonc_label in nonc_labels:
         vertexes = np.where(labels == nonc_label)[0]
-        marks = connected_conponents_labeling(vertexes, faces)
+        marks = connected_components_labeling(vertexes, faces)
 
         for m in np.unique(marks):
             verts = vertexes[np.where(marks == m)]
