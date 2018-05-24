@@ -1,10 +1,9 @@
 """
 Provide tools for get or make matrix, faces, or other forms that reflect adjacent relationships of brain surface.
 """
+import os
 import numpy as np
-from surfer import Surface
-# FIXME import Surface may cause error:
-# FIXME     ValueError: API 'QString' has already been set to version 1.
+import nibabel as nib
 
 
 def faces_to_edges(faces):
@@ -95,11 +94,14 @@ def _get_geo(subj_id, hemi, surf):
 
     Returns
     -------
-        geo: geometry of (subj_id, hemi, surf).
+        coords: coords of (subj_id, hemi, surf).
+        faces: faces of (subj_id, hemi, surf)
     """
-    geo = Surface(subj_id, hemi, surf)
-    geo.load_geometry()
-    return geo
+    subjects_dir = _get_subjects_dir()
+    geo_path = os.path.join(subjects_dir, subj_id, 'surf',
+                            '{}.{}'.format(hemi, surf))
+    coords, faces = nib.freesurfer.read_geometry(geo_path)
+    return coords, faces
 
 
 def get_faces(subj_id, hemi, surf="inflated"):
@@ -120,7 +122,8 @@ def get_faces(subj_id, hemi, surf="inflated"):
     --------
         faces = get_faces("fsaverage", "lh", "inflated")
     """
-    return _get_geo(subj_id, hemi, surf).faces
+    _, faces = _get_geo(subj_id, hemi, surf)
+    return faces
 
 
 def get_coords(subj_id, hemi, surf):
@@ -141,7 +144,8 @@ def get_coords(subj_id, hemi, surf):
     --------
         coords = get_coords("fsaverage", "lh", "inflated")
     """
-    return _get_geo(subj_id, hemi, surf).coords
+    coords, _ = _get_geo(subj_id, hemi, surf)
+    return coords
 
 
 def get_adjmatrix(subj_id, hemi, surf, mask=None):
@@ -455,3 +459,16 @@ def split_connected_components(labels, faces, showinfo=False):
                 new_label = new_label + 1
     print("Label number after processing: {0}".format(np.max(result_label)))
     return result_label
+
+
+def _get_subjects_dir(subjects_dir=None):
+    if subjects_dir is None:
+        subjects_dir = os.environ.get("SUBJECTS_DIR", "")
+    if not subjects_dir:
+        raise ValueError('The subjects directory has to be specified '
+                         'using the subjects_dir parameter or the '
+                         'SUBJECTS_DIR environment variable.')
+    if not os.path.exists(subjects_dir):
+        raise ValueError('The subjects_dir {} does not exist.'
+                         .format(subjects_dir))
+    return subjects_dir
