@@ -5,8 +5,9 @@ the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation
 """
 import os
 import functools
-import numpy as np
 from time import time
+
+import numpy as np
 
 
 def running_time(func):

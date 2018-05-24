@@ -2,7 +2,8 @@
 # TODO check input.
 # TODO this function's input need to be specified.
 import numpy as np
-from ..algorithms.fctools import isfc, isc, wsfc
+
+from nsnt.algorithms.fctools import isfc, isc, wsfc
 
 
 def nsnt_fc(method_name, data1, shape, data2=None, vertex_num=None):

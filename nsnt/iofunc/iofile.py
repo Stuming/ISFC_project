@@ -1,5 +1,6 @@
-import nibabel as nib
 import os
+
+import nibabel as nib
 
 # TODO specify this function
 # TODO def load_file(filepath): load file based on postfix

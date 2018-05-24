@@ -1,5 +1,6 @@
 """Plot head motion parameters in SPM style."""
 import os
+
 import matplotlib.pyplot as plt
 
 

@@ -1,8 +1,10 @@
 import os
+
 import numpy as np
-from ..utils.utils import check_dir
-from ..utils.adj_tools import get_coords
 from surfer.utils import coord_to_label
+
+from nsnt.utils.utils import check_dir
+from nsnt.utils.adj_tools import get_coords
 
 
 def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",

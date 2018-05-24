@@ -2,6 +2,7 @@
 Provide tools for get or make matrix, faces, or other forms that reflect adjacent relationships of brain surface.
 """
 import os
+
 import numpy as np
 import nibabel as nib
 

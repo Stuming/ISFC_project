@@ -2,6 +2,7 @@
 Used to evaluate clusters or parcellations.
 """
 import numpy as np
+
 from nsnt.utils.adj_tools import nonconnected_labels
 
 

@@ -1,10 +1,12 @@
 import os
-import numpy as np
-import nibabel as nib
 from time import time
 from itertools import combinations
-from nsnt.utils.adj_tools import get_faces, split_connected_components
+
+import numpy as np
+import nibabel as nib
 from scipy.sparse import csc_matrix
+
+from nsnt.utils.adj_tools import get_faces, split_connected_components
 
 
 def load_data(data_root, file_name):

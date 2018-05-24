@@ -1,5 +1,6 @@
 import numpy as np
-from .adj_tools import get_faces, faces_to_adjmatrix
+
+from nsnt.utils.adj_tools import get_faces, faces_to_adjmatrix
 
 
 class MatrixFunction:

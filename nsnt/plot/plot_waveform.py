@@ -1,9 +1,11 @@
 """Use matplot lib plot global mean waveform of raw function data.
 In order to check data."""
 import os
+
 import numpy as np
 import matplotlib.pyplot as plt
-from NSNT.utils.utils import check_list
+
+from nsnt.utils.utils import check_list
 
 
 def plot_waveform(wave_data, meanval=True, fig_show=True, color='b', x_min=0, x_max=1, save_path=None,
