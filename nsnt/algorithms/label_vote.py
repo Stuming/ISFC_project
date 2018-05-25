@@ -6,7 +6,7 @@ import numpy as np
 import nibabel as nib
 from scipy.sparse import csc_matrix
 
-from nsnt.utils.adj_tools import get_faces, split_connected_components
+from nsnt.utils.adj_tools import SurfaceGeometry, split_connected_components
 
 
 def load_data(data_root, file_name):
@@ -59,7 +59,7 @@ if __name__ == "__main__":
     funcname = "audiovisual3T"
     analysisname = "preproc.fs5.lh"
 
-    faces = get_faces("fsaverage5", "lh", "inflated")
+    faces = SurfaceGeometry('fsaverage5', 'lh', 'inflated').faces
 
     t0 = time()
     for runid in runidlist:

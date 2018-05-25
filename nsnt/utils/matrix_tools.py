@@ -1,6 +1,6 @@
 import numpy as np
 
-from nsnt.utils.adj_tools import get_faces, faces_to_adjmatrix
+from nsnt.utils.adj_tools import SurfaceGeometry
 
 
 class MatrixFunction:
@@ -102,8 +102,8 @@ class MatrixFunction:
             return smatrix, 0
 
         if not adjm:
-            faces = get_faces(subj_id, hemi, surf)
-            adjm = faces_to_adjmatrix(faces)
+            surface_geo = SurfaceGeometry(subj_id, hemi, surf)
+            adjm = surface_geo.adjmatrix
 
         if zeros:
             adjm = np.delete(adjm, zeros, axis=0)

@@ -4,11 +4,11 @@ import numpy as np
 from surfer.utils import coord_to_label
 
 from nsnt.utils.utils import check_dir
-from nsnt.utils.adj_tools import get_coords
+from nsnt.utils.adj_tools import SurfaceGeometry
 
 
 def cl_nsteps(coord, label_name, output_dir=os.getcwd(), subj_id="fsaverage", hemi="lh", map_surface="inflated",
-                 n_steps=10, update=False):
+              n_steps=10, update=False):
     """
     Create label by coord or vertex within its n_steps.
 
@@ -108,7 +108,7 @@ def cl_vertexes(vertex_list, label_name, output_dir=os.getcwd(), subj_id="fsaver
         print("Not updated: %s exists, file is not saved." % label_path)
         return 0
 
-    coords = get_coords(subj_id, hemi, map_surface)
+    coords = SurfaceGeometry(subj_id, hemi, map_surface).coords
 
     with open(label_path, "w") as f:
         f.write("%d\n" % len(vertex_list))

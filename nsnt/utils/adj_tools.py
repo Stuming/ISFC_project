@@ -2,25 +2,119 @@
 Provide tools for get or make matrix, faces, or other forms that reflect adjacent relationships of brain surface.
 """
 import os
+from itertools import combinations
 
 import numpy as np
 import nibabel as nib
 
 
-def faces_to_edges(faces):
+class SurfaceGeometry(object):
+    def __init__(self, subj_id, hemi, surf, subjects_dir=None):
+        if hemi not in ['lh', 'rh']:
+            raise ValueError('hemi should be "lh" or "rh" ')
+        self.subj_id = subj_id
+        self.hemi = hemi
+        self.surf = surf
+        self.subjects_dir = self._get_subjects_dir(subjects_dir)
+
+        coords, faces = self._load_geo()
+        self._coords = coords
+        self._faces = faces
+        self._edges = None
+        self._adjmatrix = None
+
+    def _load_geo(self):
+        """
+        Get geometry of (subj_id, hemi, surf).
+
+        Returns
+        -------
+            coords: coords of (subj_id, hemi, surf).
+            faces: faces of (subj_id, hemi, surf)
+        """
+        geo_path = os.path.join(self.subjects_dir, self.subj_id, 'surf',
+                                '{}.{}'.format(self.hemi, self.surf))
+        coords, faces = nib.freesurfer.read_geometry(geo_path)
+        return coords, faces
+
+    @property
+    def coords(self, mask=None):
+        coords = self._coords
+        if mask:
+            coords = coords[np.where(mask == 1)]
+        return coords
+
+    @property
+    def faces(self, mask=None):
+        faces = _apply_mask(self._faces, mask=mask)
+        return faces
+
+    @property
+    def edges(self, mask=None):
+        if not self._edges:
+            self._edges = faces_to_edges(self._faces)
+        edges = _apply_mask(self._edges, mask=mask)
+        return edges
+
+    @property
+    def adjmatrix(self, mask=None):
+        if not self._adjmatrix:
+            self._adjmatrix = faces_to_adjmatrix(self._faces, mask=mask)
+        return self._adjmatrix
+
+    @staticmethod
+    def _get_subjects_dir(subjects_dir=None):
+        if subjects_dir is None:
+            subjects_dir = os.environ.get('SUBJECTS_DIR', '')
+        if not subjects_dir:
+            raise ValueError('The subjects directory has to be specified '
+                             'using the subjects_dir parameter or the '
+                             'SUBJECTS_DIR environment variable.')
+        if not os.path.exists(subjects_dir):
+            raise ValueError('The subjects_dir {} does not exist.'
+                             .format(subjects_dir))
+        return subjects_dir
+
+
+def _apply_mask(data, mask=None):
+    """
+    Apply mask to faces or edges by delete masked data.
+
+    Parameters
+    ----------
+        data: inout data, should be faces or edges.
+        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+
+    Return
+    ------
+        result: return data if no mask, else return masked data, and its shape may change.
+    """
+    if not mask:
+        return data
+
+    mask_1dim = np.reshape(mask, (-1))
+    masked_verts = np.where(mask_1dim == 0)[0]
+    index = []
+    for vert in masked_verts:
+        index = np.concatenate([index, np.where(data == vert)[0]])
+    index = np.unique(index).astype(np.int)
+    result = np.delete(data, index, axis=0)
+    return result
+
+
+def faces_to_edges(faces, mask=None):
     """
     Build edges array from faces.
 
     Parameters
     ----------
         faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
         edges: array, edges of brain surface mesh, shape=(n_edges, 2)
     """
-    from itertools import combinations
-
     edges = np.empty((0, 2))
     for face in faces:
         for edge in combinations(face, 2):
@@ -29,33 +123,37 @@ def faces_to_edges(faces):
             if np.any(np.all(edge[::-1] == edges, axis=1)):  # check whether edge in edges
                 continue
             edges = np.append(edges, np.reshape(edge, (1, 2)),  axis=0)
+    edges = _apply_mask(edges, mask)
     return edges
 
 
-def edges_to_adjmatrix(edges, sym=True):
+def edges_to_adjmatrix(edges, mask=None):
     """
     Build edges array from faces.
 
     Parameters
     ----------
-        sym: make adjmatrix symmetrical, default is True.
+        edges: edge linkages of brain surface, shape=(n_edges, 2).
+        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
-        adjm: adjm matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
+        adjm: adjacency matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
     """
     vertexes = np.unique(edges)
     n_vertexes = len(vertexes)
     adjm = np.zeros((n_vertexes, n_vertexes))
+
     for edge in edges:
-        adjm[np.where(vertexes == edge[0]), np.where(vertexes == edge[1])] = 1
-    adjm[np.where((adjm + adjm.T) > 0)] = 1
-    if sym:
-        adjm = 0.5 * (adjm + adjm.T)
+        adjm[edge[0], edge[1]] = 1
+        adjm[edge[1], edge[0]] = 1
+    if mask:
+        adjm = np.delete(adjm, mask, axis=0)
+        adjm = np.delete(adjm, mask, axis=1)
     return adjm
 
 
-def faces_to_adjmatrix(faces, mask=None, sym=True):
+def faces_to_adjmatrix(faces, mask=None):
     """
     Build adjacency matrix by faces.
 
@@ -63,116 +161,23 @@ def faces_to_adjmatrix(faces, mask=None, sym=True):
     ----------
         faces: triangles mesh of brain surface, shape=(n_mesh, 3).
         mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
-        sym: make adjmatrix symmetrical, default is True.
-
 
     Returns
     -------
         adjm: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
-
-    Examples
-    --------
-        >>>from nsnt.utils.adj_tools import get_faces, get_adjmatrix
-        >>>faces = get_faces("fsaverage", "lh", "inflated")
-        >>>adjm = get_adjmatrix(faces)
     """
-    adjm = edges_to_adjmatrix(faces_to_edges(faces), sym=sym)
+    vertexes = np.unique(faces)
+    n_vertexes = len(vertexes)
+    adjm = np.zeros((n_vertexes, n_vertexes))
+
+    for face in faces:
+        for edge in combinations(face, 2):
+            adjm[edge[0], edge[1]] = 1
+            adjm[edge[1], edge[0]] = 1
     if mask:
         adjm = np.delete(adjm, mask, axis=0)
         adjm = np.delete(adjm, mask, axis=1)
     return adjm
-
-
-def _get_geo(subj_id, hemi, surf):
-    """
-    Get geometry of (subj_id, hemi, surf).
-
-    Parameters
-    ----------
-        subj_id: subject id (eg. "fsaverage").
-        hemi: hemisphere (eg. "lh").
-        surf: surface (eg. "inflated").
-
-    Returns
-    -------
-        coords: coords of (subj_id, hemi, surf).
-        faces: faces of (subj_id, hemi, surf)
-    """
-    subjects_dir = _get_subjects_dir()
-    geo_path = os.path.join(subjects_dir, subj_id, 'surf',
-                            '{}.{}'.format(hemi, surf))
-    coords, faces = nib.freesurfer.read_geometry(geo_path)
-    return coords, faces
-
-
-def get_faces(subj_id, hemi, surf="inflated"):
-    """
-    Get faces of (subj_id, hemi, surf).
-
-    Parameters
-    ----------
-        subj_id: subject id (eg. "fsaverage").
-        hemi: hemisphere (eg. "lh").
-        surf: surface (eg. "inflated"), can be omitted.
-
-    Returns
-    -------
-        faces that contain triangle of (subj_id, hemi, surf).
-
-    Examples
-    --------
-        faces = get_faces("fsaverage", "lh", "inflated")
-    """
-    _, faces = _get_geo(subj_id, hemi, surf)
-    return faces
-
-
-def get_coords(subj_id, hemi, surf):
-    """
-    Get coordinates by (subj_id, hemi, surf).
-
-    Parameters
-    ----------
-        subj_id: subject id (eg. "fsaverage").
-        hemi: hemisphere (eg. "lh").
-        surf: surface (eg. "inflated").
-
-    Returns
-    -------
-        coords: coordinates of (subj_id, hemi, surf), shape = (n_vertexes, 3).
-
-    Examples
-    --------
-        coords = get_coords("fsaverage", "lh", "inflated")
-    """
-    coords, _ = _get_geo(subj_id, hemi, surf)
-    return coords
-
-
-def get_adjmatrix(subj_id, hemi, surf, mask=None):
-    """
-    Get adjacency matrix by (subj_id, hemi, surf), and apply mask if it is given.
-
-    Parameters
-    ----------
-        subj_id: subject id (eg. "fsaverage").
-        hemi: hemisphere (eg. "lh").
-        surf: surface (eg. "inflated").
-        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
-
-    Returns
-    -------
-        adjmatrix: adjacency matrix of (subj_id, hemi, surf), if mask=None, then shape = (n_vertexes, n_vertexes).
-
-    Examples
-    --------
-        adjmatrix = get_adjmatrix("fsaverage", "lh", "inflated")
-    """
-    adj = faces_to_adjmatrix(get_faces(subj_id, hemi, surf))
-    if mask:
-        adj = np.delete(adj, mask, axis=0)
-        adj = np.delete(adj, mask, axis=1)
-    return 0.5 * (adj + adj.T)
 
 
 def mk_label_adjmatrix(label_image, adjmatrix):
@@ -251,7 +256,7 @@ def concat_coords_to_data(data, coords, w1=1, w2=1):
     -----
         1. w1 (same as w2) works by multiplication, default is 1.
     """
-    assert data.shape[0] == coords.shape[0], "The first shape of input is not match."
+    assert data.shape[0] == coords.shape[0], "The first shape of input does not match."
     data = np.concatenate((data * w1, coords * w2), axis=1)
     return data
 
@@ -460,16 +465,3 @@ def split_connected_components(labels, faces, showinfo=False):
                 new_label = new_label + 1
     print("Label number after processing: {0}".format(np.max(result_label)))
     return result_label
-
-
-def _get_subjects_dir(subjects_dir=None):
-    if subjects_dir is None:
-        subjects_dir = os.environ.get("SUBJECTS_DIR", "")
-    if not subjects_dir:
-        raise ValueError('The subjects directory has to be specified '
-                         'using the subjects_dir parameter or the '
-                         'SUBJECTS_DIR environment variable.')
-    if not os.path.exists(subjects_dir):
-        raise ValueError('The subjects_dir {} does not exist.'
-                         .format(subjects_dir))
-    return subjects_dir
