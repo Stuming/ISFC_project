@@ -9,7 +9,44 @@ import nibabel as nib
 
 
 class SurfaceGeometry(object):
+    """
+    Class for Surface geometry and its conversion.
+
+    Attributes
+    ----------
+    subj_id: string
+        Subject name in Freesurfer subjects dir. (eg, 'fsaverage')
+    hemi: {'lh', 'rh'}
+        Which hemisphere to load.
+    surf: string
+        Name of surface. (eg, 'inflated')
+        Notice: this parameter affects value of coordinates.
+    subjects_dir: string | None
+        Using this directory as subjects directory if it's not None.
+        Default is None, means using the SUBJECTS_DIR of environment variable.
+    coords: 2d array of shape (n_vertices, 3)
+        The coordinates of vertices.
+    faces: 2d array of shape (n_meshes, 3)
+        Triangle meshes of brain surface.
+    edges: 2d array of shape (n_edges, 2)
+        Edges of brain surface meshes.
+    adjmatrix: 2d array of shape (n_vertexes, n_vertexes)
+        Adjacency matrix that reflect linkages of vertices.
+    """
     def __init__(self, subj_id, hemi, surf, subjects_dir=None):
+        """
+        Surface Geometry
+
+        Parameters
+        ----------
+        subj_id: subject name in Freesurfer subjects dir. (eg, 'fsaverage')
+        hemi: {'lh', 'rh'}, which hemisphere to load.
+        surf: name of surface. (eg, 'inflated')
+            Notice: this parameter affects value of coordinates.
+        subjects_dir: subjects directory, default is None.
+            If not None, using this directory as subjects directory.
+            Otherwise using the SUBJECTS_DIR of environment variable.
+        """
         if hemi not in ['lh', 'rh']:
             raise ValueError('hemi should be "lh" or "rh" ')
         self.subj_id = subj_id
@@ -25,12 +62,18 @@ class SurfaceGeometry(object):
 
     def _load_geo(self):
         """
-        Get geometry of (subj_id, hemi, surf).
+        Get coords and faces of (subj_id, hemi, surf).
+
+        An example of input file path:
+            Assume subj_id = 'fsaverage', hemi = 'lh', surf = 'inflated'
+            filepath: SUBJECTS_DIR/fsaverage/surf/lh.inflated
 
         Returns
         -------
-            coords: coords of (subj_id, hemi, surf).
-            faces: faces of (subj_id, hemi, surf)
+        coords: 2d array of shape (n_vertices, 3)
+            The coordinates of vertices.
+        faces: 2d array of shape (n_meshes, 3)
+            Triangle meshes of brain surface.
         """
         geo_path = os.path.join(self.subjects_dir, self.subj_id, 'surf',
                                 '{}.{}'.format(self.hemi, self.surf))
@@ -39,6 +82,9 @@ class SurfaceGeometry(object):
 
     @property
     def coords(self, mask=None):
+        """Get the coordinates of vertices.
+        If mask is not None, then apply mask on result,
+            which may change shape of output."""
         coords = self._coords
         if mask:
             coords = coords[np.where(mask == 1)]
@@ -46,11 +92,17 @@ class SurfaceGeometry(object):
 
     @property
     def faces(self, mask=None):
+        """Get the triangle meshes of brain surface.
+        If mask is not None, then apply mask on result,
+            which may change shape of output."""
         faces = _apply_mask(self._faces, mask=mask)
         return faces
 
     @property
     def edges(self, mask=None):
+        """Get linkages of vertices.
+        If mask is not None, then apply mask on result,
+            which may change shape of output."""
         if not self._edges:
             self._edges = faces_to_edges(self._faces)
         edges = _apply_mask(self._edges, mask=mask)
@@ -58,12 +110,17 @@ class SurfaceGeometry(object):
 
     @property
     def adjmatrix(self, mask=None):
+        """Get adjacency matrix of vertices.
+        If mask is not None, then apply mask on result,
+            which may change shape of output."""
         if not self._adjmatrix:
-            self._adjmatrix = faces_to_adjmatrix(self._faces, mask=mask)
-        return self._adjmatrix
+            self._adjmatrix = faces_to_adjmatrix(self._faces)
+        adjm = _apply_mask_on_adjm(self._adjmatrix, mask=mask)
+        return adjm
 
     @staticmethod
     def _get_subjects_dir(subjects_dir=None):
+        """Get valid subjects_dir."""
         if subjects_dir is None:
             subjects_dir = os.environ.get('SUBJECTS_DIR', '')
         if not subjects_dir:
@@ -82,12 +139,12 @@ def _apply_mask(data, mask=None):
 
     Parameters
     ----------
-        data: inout data, should be faces or edges.
-        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+    data: inout data, should be faces or edges.
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Return
     ------
-        result: return data if no mask, else return masked data, and its shape may change.
+    result: return data if no mask, else return masked data, and its shape may change.
     """
     if not mask:
         return data
@@ -102,18 +159,39 @@ def _apply_mask(data, mask=None):
     return result
 
 
+def _apply_mask_on_adjm(adjm, mask=None):
+    """
+    Apply mask to adjacency matrix by delete masked data.
+
+    Parameters
+    ----------
+    adjm: input data, should be faces or edges.
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+
+    Return
+    ------
+    adjm: return data if no mask, else return masked adjmatrix, and its shape may change.
+    """
+    if not mask:
+        return adjm
+
+    adjm = np.delete(adjm, mask, axis=0)
+    adjm = np.delete(adjm, mask, axis=1)
+    return adjm
+
+
 def faces_to_edges(faces, mask=None):
     """
     Build edges array from faces.
 
     Parameters
     ----------
-        faces: triangles mesh of brain surface, shape=(n_mesh, 3).
-        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+    faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
-        edges: array, edges of brain surface mesh, shape=(n_edges, 2)
+    edges: array, edges of brain surface mesh, shape=(n_edges, 2)
     """
     edges = np.empty((0, 2))
     for face in faces:
@@ -133,12 +211,12 @@ def edges_to_adjmatrix(edges, mask=None):
 
     Parameters
     ----------
-        edges: edge linkages of brain surface, shape=(n_edges, 2).
-        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+    edges: edge linkages of brain surface, shape=(n_edges, 2).
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
-        adjm: adjacency matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
+    adjm: adjacency matrix that reflect linkages of edges, shape = (n_vertexes, n_vertexes).
     """
     vertexes = np.unique(edges)
     n_vertexes = len(vertexes)
@@ -147,9 +225,7 @@ def edges_to_adjmatrix(edges, mask=None):
     for edge in edges:
         adjm[edge[0], edge[1]] = 1
         adjm[edge[1], edge[0]] = 1
-    if mask:
-        adjm = np.delete(adjm, mask, axis=0)
-        adjm = np.delete(adjm, mask, axis=1)
+    adjm = _apply_mask_on_adjm(adjm, mask=mask)
     return adjm
 
 
@@ -159,12 +235,12 @@ def faces_to_adjmatrix(faces, mask=None):
 
     Parameters
     ----------
-        faces: triangles mesh of brain surface, shape=(n_mesh, 3).
-        mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
+    faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
-        adjm: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
+    adjm: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
     """
     vertexes = np.unique(faces)
     n_vertexes = len(vertexes)
@@ -174,9 +250,7 @@ def faces_to_adjmatrix(faces, mask=None):
         for edge in combinations(face, 2):
             adjm[edge[0], edge[1]] = 1
             adjm[edge[1], edge[0]] = 1
-    if mask:
-        adjm = np.delete(adjm, mask, axis=0)
-        adjm = np.delete(adjm, mask, axis=1)
+    adjm = _apply_mask_on_adjm(adjm, mask=mask)
     return adjm
 
 
@@ -186,16 +260,16 @@ def mk_label_adjmatrix(label_image, adjmatrix):
 
     Parameters
     ----------
-        label_image: labels of vertexes, shape = (n, ), n is number of vertexes.
-        adjmatrix: adjacent matrix of vertexes, shape = (n, n).
+    label_image: labels of vertexes, shape = (n, ), n is number of vertexes.
+    adjmatrix: adjacent matrix of vertexes, shape = (n, n).
 
     Returns
     -------
-        label_adjmatrix: adjacent matrix of labels, shape = (l, l), l is number of labels.
+    label_adjmatrix: adjacent matrix of labels, shape = (l, l), l is number of labels.
 
     Notes
     -----
-        1. for large number of vertexes, this method may cause memory error, try to use mk_label_adjfaces().
+    1. for large number of vertexes, this method may cause memory error, try to use mk_label_adjfaces().
     """
     labels = np.unique(label_image)
     l, n = len(labels), len(label_image)
@@ -219,12 +293,12 @@ def mk_label_adjfaces(label_image, faces):
 
     Parameters
     ----------
-        label_image: labels of vertexes, shape = (n, ).
-        faces: faces of vertexes, its shape depends on surface, shape = (m, 3).
+    label_image: labels of vertexes, shape = (n, ).
+    faces: faces of vertexes, its shape depends on surface, shape = (m, 3).
 
     Returns
     -------
-        label_faces: faces of labels, shape = (l, 3).
+    label_faces: faces of labels, shape = (l, 3).
     """
     label_face = np.copy(faces)
     for i in faces:
@@ -243,18 +317,18 @@ def concat_coords_to_data(data, coords, w1=1, w2=1):
 
     Parameters
     ----------
-        data: time series, shape = (n, l).
-        coords: coordinates of vertexes, shape = (n, 3).
-        w1: control weight of data.
-        w2: control weight of coords.
+    data: time series, shape = (n, l).
+    coords: coordinates of vertexes, shape = (n, 3).
+    w1: control weight of data.
+    w2: control weight of coords.
 
     Returns
     -------
-        data: after concatenating coordinates by multiplying weight, shape = (n, l + 3).
+    data: after concatenating coordinates by multiplying weight, shape = (n, l + 3).
 
     Notes
     -----
-        1. w1 (same as w2) works by multiplication, default is 1.
+    1. w1 (same as w2) works by multiplication, default is 1.
     """
     assert data.shape[0] == coords.shape[0], "The first shape of input does not match."
     data = np.concatenate((data * w1, coords * w2), axis=1)
@@ -267,12 +341,12 @@ def get_verts_faces(verts, faces):
 
     Parameters
     ----------
-        verts: a set of vertices, shape = (k,)
-        faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+    verts: a set of vertices, shape = (k,)
+    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
 
-    Returns
-    -------
-        faces of verts, shape = (m, 3)
+    Return
+    ------
+    verts_faces_rde: faces of verts, shape = (m, 3)
     """
     verts_faces = np.empty((0, 3))
     for vert in verts:
@@ -287,12 +361,12 @@ def get_verts_edges(verts, edges):
 
     Parameters
     ----------
-        verts: a set of vertices, shape = (k,)
-        edges: edges of brain surface mesh, shape=(n_edges, 2)
+    verts: a set of vertices, shape = (k,)
+    edges: edges of brain surface mesh, shape=(n_edges, 2)
 
-    Returns
-    -------
-        edges of verts, shape = (m, 2)
+    Return
+    ------
+    verts_edges_rde: edges of verts, shape = (m, 2)
     """
     verts_edges = np.empty((0, 2))
     for vert in verts:
@@ -307,18 +381,18 @@ def nonconnected_labels(labels, faces, showinfo=False):
 
     Parameters
     ----------
-        labels: cluster labels, shape = [n_samples].
-        faces: contain triangles of brain surface.
-        showinfo: whether print details or not, default is False.
+    labels: cluster labels, shape = [n_samples].
+    faces: contain triangles of brain surface.
+    showinfo: whether print details or not, default is False.
 
-    Returns
-    -------
-        label list of nonconnected labels, if None, return [].
+    Return
+    ------
+    label_list: list of nonconnected labels, if None, return [].
 
     Notes
     -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
+    1. the max label number in labels should be assigned to the medial wall.
+    2. data with the max label number will be omitted.
     """
     max_label = np.max(labels)
     label_list = []
@@ -351,12 +425,12 @@ def connected_components_labeling(vertexes, faces):
 
     Parameters
     ----------
-        vertexes: a set of vertexes that contain several connected component.
-        faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+    vertexes: a set of vertexes that contain several connected component.
+    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
 
     Return
     ------
-        marks: marks of vertexes, used to split vertexes into different connected components.
+    marks: marks of vertexes, used to split vertexes into different connected components.
     """
     mark = 0
     marks = np.zeros_like(vertexes)
@@ -388,22 +462,23 @@ def merge_small_parts(data, labels, faces, parcel_size, showinfo=False):
     """
     Merge small nonconnected parts of labels to its most correlated neighbor.
 
-    If the parcel size of a connected component in a nonconnected label is smaller thatn `parcel_size`, then this
-      component will be merged (modify its label) into its neighbors according to the correlation of `data` between
-      these parcels.
+    If the parcel size of a connected component in a nonconnected label
+        is smaller than `parcel_size`, then this component will be merged
+        (modify its label) into its neighbors according to the correlation
+        of `data` between these parcels.
 
     Parameters
     ----------
-        data: time series that used to check correlation, shape = (n_vertexes, n_features).
-        labels: labeling of all vertexes, shape = (n_vertexes, ).
-        faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
-        parcel_size: vertex number in a connected component used as threshold, if size of a parcel smaller than
-                     parcel_size, then this parcel will be merged.
-        showinfo: whether print details or not, default is False.
+    data: time series that used to check correlation, shape = (n_vertexes, n_features).
+    labels: labeling of all vertexes, shape = (n_vertexes, ).
+    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+    parcel_size: vertex number in a connected component used as threshold,
+        if size of a parcel is smaller than parcel_size, then this parcel will be merged.
+    showinfo: whether print details or not, default is False.
 
     Return
     ------
-        result_label: labels after merging small parcel.
+    result_label: labels after merging small parcel.
     """
     nonc_labels = nonconnected_labels(labels, faces)
     result_label = np.copy(labels)
@@ -441,13 +516,13 @@ def split_connected_components(labels, faces, showinfo=False):
 
     Parameters
     ----------
-        labels: labeling of all vertexes, shape = (n_vertexes, ).
-        faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
-        showinfo: whether print details or not, default is False.
+    labels: labeling of all vertexes, shape = (n_vertexes, ).
+    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+    showinfo: whether print details or not, default is False.
 
     Return
     ------
-        result_label: labels after spliting connected components in same label.
+    result_label: labels after spliting connected components in same label.
     """
     nonc_labels = nonconnected_labels(labels, faces, showinfo)
     new_label = np.max(labels) + 1
