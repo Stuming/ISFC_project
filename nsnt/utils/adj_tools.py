@@ -335,43 +335,63 @@ def concat_coords_to_data(data, coords, w1=1, w2=1):
     return data
 
 
-def get_verts_faces(verts, faces):
+def get_verts_faces(vertices, faces, keep_neighbor=False):
     """
-    Get faces of verts based on faces of all vertexes.
+    Get faces of vertices based on faces of all vertexes.
 
     Parameters
     ----------
-    verts: a set of vertices, shape = (k,)
-    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3).
+    vertices: a set of vertices, shape = (k,)
+    faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3)
+    keep_neighbor: whether to keep neighbor of verts in the result or not,
+        default is False.
 
     Return
     ------
     verts_faces_rde: faces of verts, shape = (m, 3)
     """
     verts_faces = np.empty((0, 3))
-    for vert in verts:
+    for vert in vertices:
         verts_faces = np.append(verts_faces, faces[np.where(faces == vert)[0]], axis=0)
     verts_faces_rde = np.array(list(set([tuple(column) for column in verts_faces])))  # remove duplicate elements
+
+    if not keep_neighbor:
+        verts_all = np.unique(verts_faces_rde)
+        for vert in verts_all:
+            if vert not in vertices:
+                verts_faces_rde = np.delete(verts_faces_rde,
+                                            np.where(verts_faces_rde == vert)[0],
+                                            axis=0)
     return verts_faces_rde
 
 
-def get_verts_edges(verts, edges):
+def get_verts_edges(vertices, edges, keep_neighbor=False):
     """
     Get edges of verts based on edges of all vertexes.
 
     Parameters
     ----------
-    verts: a set of vertices, shape = (k,)
+    vertices: a set of vertices, shape = (k,)
     edges: edges of brain surface mesh, shape=(n_edges, 2)
+    keep_neighbor: whether to keep neighbor of vertices in the result or not,
+        default is False.
 
     Return
     ------
-    verts_edges_rde: edges of verts, shape = (m, 2)
+    verts_edges_rde: edges of vertices, shape = (m, 2)
     """
     verts_edges = np.empty((0, 2))
-    for vert in verts:
+    for vert in vertices:
         verts_edges = np.append(verts_edges, edges[np.where(edges == vert)[0]], axis=0)
     verts_edges_rde = np.array(list(set([tuple(column) for column in verts_edges])))  # remove duplicate elements
+
+    if not keep_neighbor:
+        verts_all = np.unique(verts_edges_rde)
+        for vert in verts_all:
+            if vert not in vertices:
+                verts_edges_rde = np.delete(verts_edges_rde,
+                                            np.where(verts_edges_rde == vert)[0],
+                                            axis=0)
     return verts_edges_rde
 
 
