@@ -3,6 +3,7 @@ Used to evaluate clusters or parcellations.
 """
 import numpy as np
 
+from nsnt.algorithms.fctools import wsfc
 from nsnt.utils.adj_tools import nonconnected_labels
 
 
@@ -12,12 +13,12 @@ def ari(labels1, labels2):
 
     Parameters
     ----------
-        labels1: cluster labels, shape = [n_samples].
-        labels2: cluster labels, shape = [n_samples].
+    labels1: cluster labels, shape = [n_samples].
+    labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        ARI: ranges from (-1.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
+    ARI: ranges from (-1.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
     """
     from sklearn.metrics.cluster import adjusted_rand_score
 
@@ -30,12 +31,12 @@ def ami(labels1, labels2):
 
     Parameters
     ----------
-        labels1: cluster labels, shape = [n_samples].
-        labels2: cluster labels, shape = [n_samples].
+    labels1: cluster labels, shape = [n_samples].
+    labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        AMI: ranges from (0.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
+    AMI: ranges from (0.0, 1.0), 1.0 stands for perfect match, 0 stands for random labels.
     """
     from sklearn.metrics.cluster import adjusted_mutual_info_score
 
@@ -48,21 +49,19 @@ def homogeneity(data, labels):
 
     Parameters
     ----------
-        data: time series, shape = [n_samples, n_features].
-        labels: cluster labels, shape = [n_samples].
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        label_list: a sorted array that contain labels.
-        homo_list: homogeneity list that corresponding to label_list.
+    label_list: a sorted array that contain labels.
+    homo_list: homogeneity list that corresponding to label_list.
 
     Notes
     -----
-        1. the max number of labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
+    1. the max number of labels should be assigned to the medial wall.
+    2. data with the max label number will be omitted.
     """
-    from .fctools import wsfc
-
     # here we use unique labels for loop instead of max label number, to avoid error
     # caused by discontinuity labels which may lead to nan in result.
     label_list = np.unique(labels)
@@ -86,17 +85,17 @@ def dice_matrix(labels1, labels2):
 
     Parameters
     ----------
-        labels1: cluster labels, shape = [n_samples].
-        labels2: cluster labels, shape = [n_samples].
+    labels1: cluster labels, shape = [n_samples].
+    labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        dice_mat: array, ranges from (0, 1), shape = (label_number1, label_number2).
+    dice_mat: array, ranges from (0, 1), shape = (label_number1, label_number2).
 
     Notes
     -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
+    1. the max label number in labels should be assigned to the medial wall.
+    2. data with the max label number will be omitted.
     """
     from scipy.spatial.distance import dice
 
@@ -114,17 +113,17 @@ def dice_coef(labels1, labels2):
 
     Parameters
     ----------
-        labels1: cluster labels, shape = [n_samples].
-        labels2: cluster labels, shape = [n_samples].
+    labels1: cluster labels, shape = [n_samples].
+    labels2: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        dice_coefficient: float, reflects mean dice similarity coefficient, ranges from (0.0, 1.0).
+    dice_coefficient: float, reflects mean dice similarity coefficient, ranges from (0.0, 1.0).
 
     Notes
     -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
+    1. the max label number in labels should be assigned to the medial wall.
+    2. data with the max label number will be omitted.
     """
     dice_mat = dice_matrix(labels1, labels2)
     row_max, column_max = np.max(dice_mat, axis=0), np.max(dice_mat, axis=1)
@@ -138,12 +137,12 @@ def silhouette_coef(data, labels):
 
     Parameters
     ----------
-        data: time series, shape = [n_samples, n_features].
-        labels: cluster labels, shape = [n_samples].
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
 
     Returns
     -------
-        silhouette coefficient
+    silhouette coefficient
     """
     from sklearn.metrics.cluster import silhouette_score
 
@@ -156,17 +155,17 @@ def nonconnected_score(labels, faces):
 
     Parameters
     ----------
-        labels: cluster labels, shape = [n_samples].
-        faces: contain triangles of brain surface.
+    labels: cluster labels, shape = [n_samples].
+    faces: contain triangles of brain surface.
 
     Returns
     -------
-        nonconnected score of labels, 1 stands for every label is nonconnected, 0 for no nonconnected label.
+    nonconnected score of labels, 1 stands for every label is nonconnected, 0 for no nonconnected label.
 
     Notes
     -----
-        1. the max label number in labels should be assigned to the medial wall.
-        2. data with the max label number will be omitted.
+    1. the max label number in labels should be assigned to the medial wall.
+    2. data with the max label number will be omitted.
     """
     nonc_list = nonconnected_labels(labels, faces)
     print(nonc_list)

@@ -16,13 +16,13 @@ class MatrixFunction:
 
         Parameters
         ----------
-            smatrix: 2-dimension similarity matrix.
-            show_zeros: whether to show zeros array.
+        smatrix: 2-dimension similarity matrix.
+        show_zeros: whether to show zeros array.
 
         Returns
         -------
-            data1: matrix after delete zeros.
-            zeros: indexes of zero column.
+        data1: matrix after delete zeros.
+        zeros: indexes of zero column.
         """
         state = "de_zero"
         if self.query_state(state):
@@ -52,13 +52,13 @@ class MatrixFunction:
 
         Parameters
         ----------
-            smatrix: 2-dimension similarity matrix.
-            show_index: whether to show index array.
+        smatrix: 2-dimension similarity matrix.
+        show_index: whether to show index array.
 
         Returns
         -------
-            smatrix: after positive operation
-            neg_index: index of negative value in origin smatrix.
+        smatrix: after positive operation
+        neg_index: index of negative value in origin smatrix.
         """
         state = "pos"
         if self.query_state(state):
@@ -80,21 +80,21 @@ class MatrixFunction:
 
         Parameters
         ----------
-            smatrix: similarity matrix that want to remove negative value.
-            zeros: get from del_zeros(), and will be used to delete zero columns(rows) in adjacent matrix.
-            subj_id: subject id that get adj constrain matrix from.
-            hemi: hemi that do things as above.
-            surf: surf that do things as above.
-            adjm: adjacency matrix that was applied, if not given, it will be calculalted based on surf params.
+        smatrix: similarity matrix that want to remove negative value.
+        zeros: get from del_zeros(), and will be used to delete zero columns(rows) in adjacent matrix.
+        subj_id: subject id that get adj constrain matrix from.
+        hemi: hemi that do things as above.
+        surf: surf that do things as above.
+        adjm: adjacency matrix that was applied, if not given, it will be calculalted based on surf params.
 
         Returns
         -------
-            smatrix: smatrix after adding adjacency constraint.
-            adjm: adjacency matrix that was applied.
+        smatrix: smatrix after adding adjacency constraint.
+        adjm: adjacency matrix that was applied.
 
         Examples
         --------
-            smatrix_adj, adjm = adj_constrain(smtrix_origin, zeros, "fsaverage", "lh", "inflated")
+        smatrix_adj, adjm = adj_constrain(smtrix_origin, zeros, "fsaverage", "lh", "inflated")
         """
         state = "adj"
         if self.query_state(state):
@@ -119,12 +119,12 @@ class MatrixFunction:
 
         Parameters
         ----------
-            l: exp index.
-            smatrix: similarity matrix.
+        l: exp index.
+        smatrix: similarity matrix.
 
         Returns
         -------
-            rsmatrix: rescaled matrix, rsmatrix = exp(-1*l*(1-smatrix)).
+        rsmatrix: rescaled matrix, rsmatrix = exp(-1*l*(1-smatrix)).
         """
         state = "exp_rs"
         if self.query_state(state):
@@ -142,11 +142,11 @@ class MatrixFunction:
 
         Parameters
         ----------
-            state: the state that will be queried. True means done, False means undone. If None, then print all state.
+        state: the state that will be queried. True means done, False means undone. If None, then print all state.
 
         Returns
         -------
-            status of state, -1 stands for get nothing, 0 for state is not done, 1 for state is done.
+        status of state, -1 stands for get nothing, 0 for state is not done, 1 for state is done.
         """
         if not state:
             print(self.state)
@@ -162,11 +162,11 @@ class MatrixFunction:
 
         Parameters
         ----------
-            filename: string that contains filename.
+        filename: string that contains filename.
 
         Returns
         -------
-            filename: filename after adding states.
+        filename: filename after adding states.
         """
         fname = filename.split('.')
         postfix = fname[-1]

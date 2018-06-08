@@ -30,11 +30,11 @@ def check_list(list_data):
 
     Parameters
     ----------
-        list_data: input data that needs to be checked.
+    list_data: input data that needs to be checked.
 
-    Returns
-    -------
-        list_data: data without `\n` in it.
+    Return
+    ------
+    list_data: data without `\n` in it.
     """
     if isinstance(list_data, list):
         if isinstance(list_data[0], str):
@@ -48,12 +48,12 @@ def check_dir(dirpath, new=True):
 
     Parameters
     ----------
-        dirpath: input path which needs to be checked.
-        new: default is True, which stands for making dir if dirpath does not exist.
+    dirpath: input path which needs to be checked.
+    new: default is True, which stands for making dir if dirpath does not exist.
 
-    Returns
-    -------
-        boolean value, return 0 for dir not exists(not found or not created), otherwise return 1.
+    Return
+    ------
+    boolean value, return 0 for dir not exists(not found or not created), otherwise return 1.
     """
     if not os.path.exists(dirpath):
         if not new:
@@ -70,13 +70,13 @@ def mk_rand_lut(row, rand_range=(0, 255), alpha=255):
 
     Parameters
     ----------
-        row: set number of colors in lut
-        rand_range: set extent of lut value.
-        alpha: opacity, range from 0 to 255.
+    row: set number of colors in lut
+    rand_range: set extent of lut value.
+    alpha: opacity, range from 0 to 255.
 
-    Returns
-    -------
-        ltable: an (row, 4) shaped lookup table.
+    Return
+    ------
+    ltable: an (row, 4) shaped lookup table.
     """
     ltable = np.zeros([row, 4])
     for i in range(row):

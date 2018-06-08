@@ -240,7 +240,7 @@ def faces_to_adjmatrix(faces, mask=None):
 
     Returns
     -------
-    adjm: adj matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
+    adjm: adjacency matrix that reflect linkages of faces, shape = (n_vertexes, n_vertexes).
     """
     vertexes = np.unique(faces)
     n_vertexes = len(vertexes)
@@ -343,7 +343,7 @@ def get_verts_faces(vertices, faces, keep_neighbor=False):
     ----------
     vertices: a set of vertices, shape = (k,)
     faces: faces of vertexes, its shape depends on surface, shape = (n_faces, 3)
-    keep_neighbor: whether to keep neighbor of verts in the result or not,
+    keep_neighbor: whether to keep 1-ring neighbor of verts in the result or not,
         default is False.
 
     Return
@@ -353,7 +353,8 @@ def get_verts_faces(vertices, faces, keep_neighbor=False):
     verts_faces = np.empty((0, 3))
     for vert in vertices:
         verts_faces = np.append(verts_faces, faces[np.where(faces == vert)[0]], axis=0)
-    verts_faces_rde = np.array(list(set([tuple(column) for column in verts_faces])))  # remove duplicate elements
+    # remove duplicate elements
+    verts_faces_rde = np.array(list(set([tuple(column) for column in verts_faces])))
 
     if not keep_neighbor:
         verts_all = np.unique(verts_faces_rde)
@@ -373,7 +374,7 @@ def get_verts_edges(vertices, edges, keep_neighbor=False):
     ----------
     vertices: a set of vertices, shape = (k,)
     edges: edges of brain surface mesh, shape=(n_edges, 2)
-    keep_neighbor: whether to keep neighbor of vertices in the result or not,
+    keep_neighbor: whether to keep 1-ring neighbor of vertices in the result or not,
         default is False.
 
     Return
@@ -383,7 +384,8 @@ def get_verts_edges(vertices, edges, keep_neighbor=False):
     verts_edges = np.empty((0, 2))
     for vert in vertices:
         verts_edges = np.append(verts_edges, edges[np.where(edges == vert)[0]], axis=0)
-    verts_edges_rde = np.array(list(set([tuple(column) for column in verts_edges])))  # remove duplicate elements
+    # remove duplicate elements
+    verts_edges_rde = np.array(list(set([tuple(column) for column in verts_edges])))
 
     if not keep_neighbor:
         verts_all = np.unique(verts_edges_rde)
@@ -414,6 +416,7 @@ def nonconnected_labels(labels, faces, showinfo=False):
     1. the max label number in labels should be assigned to the medial wall.
     2. data with the max label number will be omitted.
     """
+    # TODO fix medial wall labels.
     max_label = np.max(labels)
     label_list = []
     for i in range(max_label):

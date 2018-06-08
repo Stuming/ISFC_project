@@ -8,7 +8,7 @@ def data_stats(data):
 
     Parameters
     ----------
-        data: should be array or list.
+    data: should be array or list.
     """
     # f.get_data()  std(), min(), max(), mean(), argmax(), any(), unique(), bincount()
     # FIXME argmax may get huge index bigger than data shape.
@@ -26,13 +26,13 @@ def del_zeros(data, show_zeros=False):
 
     Parameters
     ----------
-        data: 2-dimension array.
-        show_zeros: whether to show zeros list, default is 'False'.
+    data: 2-dimension array.
+    show_zeros: whether to show zeros list, default is 'False'.
 
     Returns
     -------
-        data1: data after delete zeros.
-        zeros: indexes of zero column.
+    data1: data after delete zeros.
+    zeros: indexes of zero column.
     """
     # TODO check dimension of data
     zeros = np.where(~data.any(axis=1))[0]
@@ -50,22 +50,22 @@ def remove_outlier(data, thr=(-3, 3), flatten_order='F'):
 
     Parameters
     ----------
-        data: array data.
-        thr: define range of outlier
-        flatten_order: define flatten order, 'C' for row-major, 'F' for column-order, or preserve C/F order from 'a'.
-                        see more detail:
-                            a = numpy.array([])
-                            help(a.flatted)
+    data: array data.
+    thr: define range of outlier
+    flatten_order: define flatten order, 'C' for row-major, 'F' for column-order, or preserve C/F order from 'a'.
+                    see more detail:
+                        a = numpy.array([])
+                        help(a.flatted)
 
     Returns
     -------
-        result: data after removing outlier, with the same shape of the input.
-        outlier_index: index of outliers.
+    result: data after removing outlier, with the same shape of the input.
+    outlier_index: index of outliers.
 
     Notes
     -----
-        1. this function remove outlier by average values locate both side of outlier index,
-            and flatten data(by numpy.flatted()) before remove outlier.
+    1. this function remove outlier by average values locate both side of outlier index,
+        and flatten data(by numpy.flatted()) before remove outlier.
     """
     # TODO make param `axis` work, which means remove outlier by row or column.
     axis = None

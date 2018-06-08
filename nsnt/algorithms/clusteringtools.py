@@ -13,9 +13,9 @@ class Clustering(object):
 
     Parameters
     ----------
-        data: input time series array, shape: (n_vertexes, n_features).
-        mask: mask array of data, vertexes that value equals to 0 will not being used in clustering, \
-              shape: (n_vertexes, )
+    data: input time series array, shape: (n_vertexes, n_features).
+    mask: mask array of data, vertexes that value equals to 0 will not being used in clustering, \
+          shape: (n_vertexes, )
     """
 
     def __init__(self, data, mask):
@@ -54,11 +54,11 @@ class Clustering(object):
 
         Parameters
         ----------
-            n_clusters: the number of clusters, type: int.
+        n_clusters: the number of clusters, type: int.
 
         Return
         ------
-            label: clustering result, shape: (n_vertexes,)
+        label: clustering result, shape: (n_vertexes,)
         """
         kmeans = KMeans(n_clusters=n_clusters)
         kmeans.fit(self.data)
@@ -73,12 +73,12 @@ class Clustering(object):
 
         Parameters
         ----------
-            n_clusters: the number of clusters, type: int.
-            adj: adjacency matrix, used for connectivity(adjacency constraint) if needed, default is None.
+        n_clusters: the number of clusters, type: int.
+        adj: adjacency matrix, used for connectivity(adjacency constraint) if needed, default is None.
 
         Return
         ------
-            label: clustering result, shape: (n_vertexes,)
+        label: clustering result, shape: (n_vertexes,)
         """
         if adj is not None:
             model = AgglomerativeClustering(n_clusters=n_clusters, linkage="ward", connectivity=adj)
@@ -101,15 +101,15 @@ class Clustering(object):
 
         Parameters
         ----------
-            n_clusters: the number of clusters, type: int.
-            eigen_solver: The eigenvalue decomposition strategy to use, default is 'arpack'.
-                          For more information, see help(sklearn.cluster.SpectralClustering).
-            affinity: Only kernels that produce similarity scores (non-negative values that
-                      increase with similarity) should be used, default is 'rbf'.
+        n_clusters: the number of clusters, type: int.
+        eigen_solver: The eigenvalue decomposition strategy to use, default is 'arpack'.
+                      For more information, see help(sklearn.cluster.SpectralClustering).
+        affinity: Only kernels that produce similarity scores (non-negative values that
+                  increase with similarity) should be used, default is 'rbf'.
 
         Return
         ------
-            label: clustering result, shape: (n_vertexes,)
+        label: clustering result, shape: (n_vertexes,)
         """
         beta = 0.1  # used in spectral clustering
         smat = cal_edist_mat(self.data, beta=beta)
@@ -160,8 +160,8 @@ class Clustering(object):
 
         Parameters
         ----------
-            index: assign index to vertexes that are out of mask, which means vertexes that \
-                   were deleted by self._apply_mask().
+        index: assign index to vertexes that are out of mask, which means vertexes that \
+               were deleted by self._apply_mask().
         """
         zeros = np.where(self.mask == 0)[0]
         label = self.label
@@ -178,12 +178,12 @@ def cal_knn_mat(data, k=10):
 
     Parameters
     ----------
-        data: input 2-d array.
-        k:  the number of nearest neighbors, default is 10.
+    data: input 2-d array.
+    k: the number of nearest neighbors, default is 10.
 
     Return
     ------
-        knn_mat: k nearest neighbor matrix.
+    knn_mat: k nearest neighbor matrix.
     """
     rbf_mat = rbf_kernel(data)
     nbrs = kneighbors_graph(X=data, n_neighbors=k)
@@ -200,12 +200,12 @@ def cal_edist_mat(data, beta=1.0):
 
     Parameters
     ----------
-        data: input 2-d array.
-        beta: factor of exp, default is 1.0.
+    data: input 2-d array.
+    beta: factor of exp, default is 1.0.
 
     Return
     ------
-        smat: asymmetric similarity matrix.
+    smat: asymmetric similarity matrix.
     """
     dist = cdist(data, data)
     print("std of dist: {}".format(dist.std()))

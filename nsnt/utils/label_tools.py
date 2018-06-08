@@ -1,6 +1,7 @@
 import numpy as np
 
 from nsnt.algorithms.evaltools import dice_matrix
+from nsnt.utils.adj_tools import connected_components_labeling
 
 
 def get_label_contour(labels, faces, medial_wall_label=None):
@@ -197,3 +198,25 @@ def reglabel(baselabels, adjustlabels, return_matched_number=False, show_info=Fa
     if return_matched_number:
         return baselabels, reglabels, matched_number
     return baselabels, reglabels
+
+
+def label_distribute(labels, faces):
+    """
+    Get connected components numbers of labels, return in a list.
+
+    Parameters
+    ----------
+    labels: cluster labels, shape = [n_samples].
+    faces: contain triangles of brain surface.
+
+    Return
+    ------
+    list of connected conponents numbers.
+    """
+    label_list = np.unique(labels)
+    result = np.zeros_like(label_list)
+    for i, label_num in enumerate(label_list):
+        vertexes = np.where(labels == label_num)[0]
+        numbers = np.unique(connected_components_labeling(vertexes, faces)).shape[0]
+        result[i] = numbers
+    return result
