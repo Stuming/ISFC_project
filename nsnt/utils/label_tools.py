@@ -10,13 +10,13 @@ def get_label_contour(labels, faces, medial_wall_label=None):
 
     Parameters
     ----------
-        labels: labels of vertexes, shape = [n_samples].
-        faces: triangles mesh of brain surface, shape=(n_mesh, 3).
-        medial_wall_label: label number of medial wall of labels, default uses the max label number.
+    labels: labels of vertexes, shape = [n_samples].
+    faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+    medial_wall_label: label number of medial wall of labels, default uses the max label number.
 
     Returns
     -------
-        contour list that contain contour vertexes.
+    contour list that contain contour vertexes.
 
     Notes
     -----
@@ -54,27 +54,27 @@ def relabel(labels1, labels2, reorder=False, return_matched_number=False):
 
     Parameters
     ----------
-        labels1: cluster labels, shape = [n_samples].
-        labels2: cluster labels, shape = [n_samples].
-        reorder: since relabel makes label number discontinuous and same label number may not
-                 be able to have the same color in colormap, it would be helpful to reorder
-                 label number before display.
-                 Reorder makes label number grow from 0 if two labels are same, otherwise
-                 reduces from 'parcel_num - 1'.
-        return_matched_number: return marched number for other analysis, default is False.
+    labels1: cluster labels, shape = [n_samples].
+    labels2: cluster labels, shape = [n_samples].
+    reorder: since relabel makes label number discontinuous and same label number may not
+             be able to have the same color in colormap, it would be helpful to reorder
+             label number before display.
+             Reorder makes label number grow from 0 if two labels are same, otherwise
+             reduces from 'parcel_num - 1'.
+    return_matched_number: return marched number for other analysis, default is False.
 
     Returns
     -------
-        relabels1: cluster labels after relabeling, shape = [n_samples].
-                   if 'reorder=True', return labels after reordering.
-        relabels2: cluster labels after relabeling, shape = [n_samples].
-                   if 'reorder=True', return labels after reordering.
-        matched_number: if 'return_matched_number=True', return number of matched labels.
+    relabels1: cluster labels after relabeling, shape = [n_samples].
+               if 'reorder=True', return labels after reordering.
+    relabels2: cluster labels after relabeling, shape = [n_samples].
+               if 'reorder=True', return labels after reordering.
+    matched_number: if 'return_matched_number=True', return number of matched labels.
 
     Notes
     -----
-        1. medial wall label should be the max label of labels.
-        2. label of medial wall would not be changed, whether reorder or not.
+    1. medial wall label should be the max label of labels.
+    2. label of medial wall would not be changed, whether reorder or not.
     """
     dice_mat = dice_matrix(labels1, labels2)
     parcel_num = int(np.max(labels1))
@@ -107,17 +107,17 @@ def _reorder(labels, parcel_num):
 
     Parameters
     ----------
-        labels: cluster labels, shape = [n_samples].
-        parcel_num: number of labels, which equal to label number of medial wall.
+    labels: cluster labels, shape = [n_samples].
+    parcel_num: number of labels, which equal to label number of medial wall.
 
     Returns
     -------
-        labels_ro: cluster labels after reordering, shape = [n_samples].
+    labels_ro: cluster labels after reordering, shape = [n_samples].
 
     Notes
     -----
-        1. medial wall label should be the max label of labels.
-        2. label of medial wall would not be changed, whether reorder or not.
+    1. medial wall label should be the max label of labels.
+    2. label of medial wall would not be changed, whether reorder or not.
     """
     labels_ro = np.copy(labels)
     i = 0
@@ -150,22 +150,22 @@ def reglabel(baselabels, adjustlabels, return_matched_number=False, show_info=Fa
 
     Parameters
     ----------
-        baselabels: cluster labels, shape = [n_samples].
-        adjustlabels: cluster labels, shape = [n_samples].
-        return_matched_number: return marched number for other analysis, default is False.
+    baselabels: cluster labels, shape = [n_samples].
+    adjustlabels: cluster labels, shape = [n_samples].
+    return_matched_number: return marched number for other analysis, default is False.
 
     Returns
     -------
-        relabels1: cluster labels after relabeling, shape = [n_samples].
-                   if 'reorder=True', return labels after reordering.
-        relabels2: cluster labels after relabeling, shape = [n_samples].
-                   if 'reorder=True', return labels after reordering.
-        matched_number: if 'return_matched_number=True', return number of matched labels.
+    relabels1: cluster labels after relabeling, shape = [n_samples].
+               if 'reorder=True', return labels after reordering.
+    relabels2: cluster labels after relabeling, shape = [n_samples].
+               if 'reorder=True', return labels after reordering.
+    matched_number: if 'return_matched_number=True', return number of matched labels.
 
     Notes
     -----
-        1. medial wall label should be the max label of labels.
-        2. label of medial wall would not be changed, whether reorder or not.
+    1. medial wall label should be the max label of labels.
+    2. label of medial wall would not be changed, whether reorder or not.
     """
     dice_mat = dice_matrix(baselabels, adjustlabels)
     assert dice_mat.ndim == 2, 'Dice mat should be 2-dimensional, please fix dice_matrix() function.'
