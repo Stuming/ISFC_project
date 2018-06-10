@@ -85,3 +85,26 @@ def mk_rand_lut(row, rand_range=(0, 255), alpha=255):
         ltable[i, 2] = np.random.randint(rand_range[0], rand_range[1])
         ltable[i, 3] = alpha
     return ltable
+
+
+def apply_1d_mask(data, mask):
+    """
+    Apply 1 dimension mask onto data.
+
+    Parameters
+    ----------
+    data: array or sequence, length of its first dim should b equal to length of mask.
+    mask: binary array, 1 for region of interest and 0 for others, shape=(n_vertices,).
+
+    Return
+    ------
+    data: array or sequence after masked.
+    """
+    if mask is None:
+        return data
+
+    if np.any(mask < 0) or np.any(mask > 1):
+        raise ValueError('value of mask should be 0 or 1.')
+    if np.ndim(mask) != 1:
+        mask = np.reshape(mask, (-1))
+    return np.copy(data[np.where(mask == 1)])
