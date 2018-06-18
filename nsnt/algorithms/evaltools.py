@@ -76,8 +76,7 @@ def homogeneity(data, labels):
         if vert_num == 1:  # some labels may be assigned to only one vertex.
             homo_list[i] = 1
         else:
-            # ((np.sum(fcmap) - vert_num) / 2) / (vert_num * (vert_num - 1) / 2)
-            homo_list[i] = (np.sum(fcmap) - vert_num) / (vert_num * (vert_num - 1))
+            homo_list[i] = np.mean(fcmap[np.triu_indices_from(fcmap, k=1)])
     return label_list, homo_list
 
 
