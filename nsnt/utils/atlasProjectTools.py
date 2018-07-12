@@ -82,7 +82,7 @@ class AslanConvert(object):
         """
         prefix = '{0}/{0}_{1}'.format(method, self.hemi)
         if not os.path.exists(os.path.join(self.aslan_dir, '{}.mat'.format(prefix))):
-            prefix = '{0}/{0}_1_{1}.mat'.format(method, self.hemi)
+            prefix = '{0}/{0}_1_{1}'.format(method, self.hemi)
         self.prefix = prefix
 
         data = sio.loadmat(os.path.join(self.aslan_dir, '{}.mat'.format(prefix)))
@@ -248,6 +248,8 @@ class SherlockConvert(object):
             new_trgsub = 'fs6'
         elif trgsub == 'fsaverage5':
             new_trgsub = 'fs5'
+        else:
+            raise ValueError('trgsub is invalid.')
 
         infile = os.path.join(sherlock_datadir, 'sherlock_movie_{}.nii'.format(subid))
         outfile = os.path.join(sherlock_datadir, 'sherlock_movie_{}_{}_{}.func.gii'.format(subid, new_trgsub, hemi))
