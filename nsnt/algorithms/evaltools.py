@@ -3,6 +3,8 @@ Used to evaluate clusters or parcellations.
 """
 import numpy as np
 
+from scipy.spatial.distance import cdist
+
 from nsnt.algorithms.fctools import wsfc
 from nsnt.utils.utils import apply_1d_mask
 from nsnt.utils.adj_tools import nonconnected_labels
@@ -50,7 +52,40 @@ def ami(labels1, labels2, mask=None):
     return adjusted_mutual_info_score(labels1, labels2)
 
 
-def homogeneity(data, labels):
+def homogeneity_coef(data, labels, label_size_count=False):
+    """
+    Calculate homogeneity score of labels based on its data.
+
+    Parameters
+    ----------
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
+    label_size_count: whether balance size of label or not.
+
+    Returns
+    -------
+    homo_score: score of homogeneity.
+    """
+    label_list = np.unique(labels)
+    homo_list = np.zeros_like(label_list, dtype=np.float64)
+    label_size = np.zeros_like(label_list, dtype=np.int)
+
+    for i, label in enumerate(label_list):
+        vert_list = np.array(np.where(labels == label))[0]
+        vert_num = vert_list.shape[0]
+        label_size[i] = vert_num
+
+        fcmap = np.nan_to_num(wsfc(data[vert_list, :]))
+        if vert_num == 1:  # some labels may be assigned to only one vertex.
+            homo_list[i] = 1
+        else:
+            homo_list[i] = np.mean(fcmap[np.triu_indices_from(fcmap, k=1)])
+    if label_size_count:
+        return np.sum(label_size * homo_list) / np.sum(label_size)
+    return np.mean(homo_list)
+
+
+def homogeneity_list(data, labels):
     """
     Calculate homogeneity of labels based on its data.
 
@@ -100,7 +135,7 @@ def homogeneity_map(data, labels, mask=None):
     # here we use unique labels for loop instead of max label number, to avoid error
     # caused by discontinuity labels which may lead to nan in result.
     label_list = np.unique(labels)
-    homo_map = np.zeros_like(label_list, dtype=np.float64)
+    homo_map = np.zeros_like(labels, dtype=np.float64)
 
     for i, label in enumerate(label_list):
         vert_list = np.array(np.where(labels == label))[0]
@@ -109,9 +144,11 @@ def homogeneity_map(data, labels, mask=None):
         for j, vert in enumerate(vert_list):
             # calculate mean homo except vertex itself.
             homo_map[vert] = (np.sum(fcmap[j]) - 1) / (vert_num - 1)
-    result = np.copy(mask)
-    result[np.where(mask == 1)] = homo_map
-    return result
+    if mask:
+        result = np.copy(mask)
+        result[np.where(mask == 1)] = homo_map
+        return result
+    return homo_map
 
 
 def dice_matrix(labels1, labels2):
@@ -164,6 +201,35 @@ def dice_coef(labels1, labels2):
     row_max, column_max = np.max(dice_mat, axis=0), np.max(dice_mat, axis=1)
     dice_coefficient = (np.mean(row_max) + np.mean(column_max)) / 2
     return dice_coefficient
+
+
+def cdist_coef(data, labels, metric='euclidean'):
+    """
+    Calculate euclidean distance coefficient of labels based on its data.
+
+    Parameters
+    ----------
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
+    metric: measurement, see help of scipy.spatial.distance.
+
+    Returns
+    -------
+    label_list: a sorted array that contain labels.
+    edist_list: euclidean distance list that corresponding to label_list.
+    """
+    # here we use unique labels for loop instead of max label number, to avoid error
+    # caused by discontinuity labels, which may lead to nan in result.
+    label_list = np.unique(labels)
+    cdist_list = np.zeros_like(label_list, dtype=np.float64)
+    cdist_map = np.nan_to_num(cdist(data, data, metric=metric))
+
+    for i, label in enumerate(label_list):
+        vert_list = np.array(np.where(labels == label))[0]
+        cdist_map_label = cdist_map[:, vert_list][vert_list, :]
+
+        cdist_list[i] = np.mean(cdist_map_label[np.triu_indices_from(cdist_map_label, k=1)])
+    return label_list, cdist_list
 
 
 def silhouette_coef(data, labels, mask=None):
