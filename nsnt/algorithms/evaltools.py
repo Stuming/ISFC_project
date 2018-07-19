@@ -203,7 +203,7 @@ def dice_coef(labels1, labels2):
     return dice_coefficient
 
 
-def cdist_coef(data, labels, metric='euclidean'):
+def cdist_coef(data, labels, metric='euclidean', label_size_count=False):
     """
     Calculate euclidean distance coefficient of labels based on its data.
 
@@ -212,6 +212,7 @@ def cdist_coef(data, labels, metric='euclidean'):
     data: time series, shape = [n_samples, n_features].
     labels: cluster labels, shape = [n_samples].
     metric: measurement, see help of scipy.spatial.distance.
+    label_size_count: whether balance size of label or not.
 
     Returns
     -------
@@ -222,14 +223,18 @@ def cdist_coef(data, labels, metric='euclidean'):
     # caused by discontinuity labels, which may lead to nan in result.
     label_list = np.unique(labels)
     cdist_list = np.zeros_like(label_list, dtype=np.float64)
+    label_size = np.zeros_like(label_list, dtype=np.int)
     cdist_map = np.nan_to_num(cdist(data, data, metric=metric))
 
     for i, label in enumerate(label_list):
         vert_list = np.array(np.where(labels == label))[0]
+        label_size[i] = vert_list.shape[0]
         cdist_map_label = cdist_map[:, vert_list][vert_list, :]
 
         cdist_list[i] = np.mean(cdist_map_label[np.triu_indices_from(cdist_map_label, k=1)])
-    return label_list, cdist_list
+    if label_size_count:
+        return np.sum(label_size * cdist_list) / np.sum(label_size)
+    return np.mean(cdist_list)
 
 
 def silhouette_coef(data, labels, mask=None):
