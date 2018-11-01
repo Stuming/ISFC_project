@@ -4,6 +4,7 @@ Input file format: *.mgh (output format: *.mgh)
 the input file(*.mgh) is converted from *.nii.gz file, in order to visualisation by pysurfer
 """
 import os
+import re
 import functools
 from time import time
 
@@ -62,6 +63,61 @@ def check_dir(dirpath, new=True):
         print ("Creating dir: %s" % dirpath)
         os.makedirs(dirpath)
     return 1
+
+
+def change_subid(subid, target):
+    """
+    Change subid prefix to match different data dir name.
+
+    Parameters
+    ----------
+    subid: id of subject, used in dir name.
+    target: change prefix of subid to target.
+
+    Return
+    ------
+    New id of subject with target as prefix.
+
+    Example
+    -------
+    >>> change_subid('S001', 'sub')
+    'sub001'
+    >>> change_subid('sub001', 'S')
+    'S001'
+    """
+    prefix = {'S': 'sub', 'sub': 'S'}
+    assert target in prefix, 'target should be "sub" or "S"!'
+    return re.sub(prefix[target], target, subid)
+
+
+def make_subid(prefix, num, digits=3):
+    """
+    Make subid by num and prefix, if length of num
+    is shorter than digits, the extra digits will
+    be filled with '0'.
+
+    Parameters
+    ----------
+    prefix: change prefix of subid to target, string.
+    num: id of subject, used in dir name, int or string.
+    digits: digits of num, default is 3, int.
+
+    Return
+    ------
+    New id of subject formed as prefix+num, with digits of num.
+
+    Example
+    -------
+    >>> make_subid('sub', 1, 3)
+    'sub001'
+    >>> make_subid('S', 1, 3)
+    'S001'
+    """
+    s = str(num)
+    assert len(s) <= digits, 'digits should not be lower than length of num.'
+    while len(s) < digits:
+        s = '0' + s
+    return str(prefix) + s
 
 
 def mk_rand_lut(row, rand_range=(0, 255), alpha=255):
