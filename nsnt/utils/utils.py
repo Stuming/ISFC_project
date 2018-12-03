@@ -90,7 +90,7 @@ def change_subid(subid, target):
     return re.sub(prefix[target], target, subid)
 
 
-def make_subid(prefix, num, digits=3):
+def make_subid(prefix, num, digits=0):
     """
     Make subid by num and prefix, if length of num
     is shorter than digits, the extra digits will
@@ -100,7 +100,8 @@ def make_subid(prefix, num, digits=3):
     ----------
     prefix: change prefix of subid to target, string.
     num: id of subject, used in dir name, int or string.
-    digits: digits of num, default is 3, int.
+    digits: digits of num, if digits is lower than the length of num,
+            no 0 will be add. Default is 0, int.
 
     Return
     ------
@@ -114,7 +115,6 @@ def make_subid(prefix, num, digits=3):
     'S001'
     """
     s = str(num)
-    assert len(s) <= digits, 'digits should not be lower than length of num.'
     while len(s) < digits:
         s = '0' + s
     return str(prefix) + s
