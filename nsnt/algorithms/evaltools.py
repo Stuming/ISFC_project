@@ -3,6 +3,7 @@ Used to evaluate clusters or parcellations.
 """
 import numpy as np
 
+from scipy.stats import zscore
 from scipy.spatial.distance import cdist
 
 from nsnt.algorithms.fctools import wsfc
@@ -203,9 +204,9 @@ def dice_coef(labels1, labels2):
     return dice_coefficient
 
 
-def cdist_coef(data, labels, metric='euclidean', label_size_count=False):
+def cdist_coef(data, labels, metric='euclidean', label_size_count=False, doing_zscore=False):
     """
-    Calculate euclidean distance coefficient of labels based on its data.
+    Calculate euclidean distance coefficient of labels based on its vertices' cdist.
 
     Parameters
     ----------
@@ -213,12 +214,14 @@ def cdist_coef(data, labels, metric='euclidean', label_size_count=False):
     labels: cluster labels, shape = [n_samples].
     metric: measurement, see help of scipy.spatial.distance.
     label_size_count: whether balance size of label or not.
+    doing_zscore: whether doing zscore to data or not.
 
     Returns
     -------
-    label_list: a sorted array that contain labels.
-    edist_list: euclidean distance list that corresponding to label_list.
+    cdist_coefficient: float, reflects mean dissimilarity, based on metric.
     """
+    if doing_zscore:
+        data = zscore(data, axis=1)
     # here we use unique labels for loop instead of max label number, to avoid error
     # caused by discontinuity labels, which may lead to nan in result.
     label_list = np.unique(labels)
@@ -235,6 +238,43 @@ def cdist_coef(data, labels, metric='euclidean', label_size_count=False):
     if label_size_count:
         return np.sum(label_size * cdist_list) / np.sum(label_size)
     return np.mean(cdist_list)
+
+
+def cdist_mean(data, labels, metric='euclidean', coef=True, doing_zscore=False):
+    """
+    Calculate euclidean distance coefficient of labels based on its mean data.
+
+    Parameters
+    ----------
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
+    metric: measurement, see help of scipy.spatial.distance.
+    coef: whether return coef(float) or matrix(array), default is True.
+    doing_zscore: whether doing zscore to data or not.
+
+    Returns
+    -------
+    cdist_coef_label: float, reflects mean dissimilarity, based on metric.
+    cdist_map_label: matrix, reflects dissimilarity of all label pair, based on metric.
+    """
+    if doing_zscore:
+        data = zscore(data, axis=1)
+
+    # here we use unique labels for loop instead of max label number, to avoid error
+    # caused by discontinuity labels, which may lead to nan in result.
+    label_list = np.unique(labels)
+    label_number = np.shape(label_list)[0]
+    time_point = np.shape(data)[-1]
+    data_mean = np.zeros((label_number, time_point), dtype=np.float64)
+    for i, label in enumerate(label_list):
+        data_vertices = data[np.where(labels == label)]
+        data_mean[i] = np.mean(data_vertices, axis=0)
+
+    cdist_map_label = np.nan_to_num(cdist(data_mean, data_mean, metric=metric))
+    if coef:
+        cdist_coef_label = np.mean(cdist_map_label[np.triu_indices_from(cdist_map_label, k=1)])
+        return cdist_coef_label
+    return cdist_map_label
 
 
 def silhouette_coef(data, labels, mask=None):
