@@ -254,6 +254,27 @@ def faces_to_adjmatrix(faces, mask=None):
     return adjm
 
 
+def faces_to_dict(faces):
+    """
+    Transform faces to dict.
+
+    Parameters
+    ----------
+    faces: triangles mesh of brain surface, shape=(n_mesh, 3).
+
+    Returns
+    -------
+    adj_dict: dict of adjacent faces, key is id of node in faces, value is neighbors of the node.
+    """
+    label_list = np.unique(faces)
+    adj_dict = dict()
+    for label in label_list:
+        adj_list = list(np.unique(faces[np.where(faces == label)[0]]))
+        adj_list.remove(label)
+        adj_dict[label] = adj_list
+    return adj_dict
+
+
 def mk_label_adjmatrix(label_image, adjmatrix):
     """
     Calculate adjacent matrix of labels in label_image, based on adjacent matrix of vertexes.
