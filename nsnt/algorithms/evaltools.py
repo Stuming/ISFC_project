@@ -8,7 +8,7 @@ from scipy.spatial.distance import cdist
 
 from nsnt.algorithms.fctools import wsfc
 from nsnt.utils.utils import apply_1d_mask
-from nsnt.utils.adj_tools import nonconnected_labels, SurfaceGeometry, mk_label_adjfaces
+from nsnt.utils.adj_tools import nonconnected_labels, SurfaceGeometry, mk_label_adjfaces, faces_to_dict
 
 
 def ari(labels1, labels2, mask=None):
@@ -320,7 +320,7 @@ def cdist_max(data, labels, metric='euclidean', coef=True, doing_zscore=False):
     return cdist_map_label
 
 
-def cdist_mean_adj(data, labels, metric='euclidean', coef=True, doing_zscore=False):
+def cdist_adj(data, labels, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
     """
     Calculate euclidean distance coefficient between label and its neighbors,
     based on its mean data.
@@ -331,6 +331,10 @@ def cdist_mean_adj(data, labels, metric='euclidean', coef=True, doing_zscore=Fal
     labels: cluster labels, shape = [n_samples].
     metric: measurement, see help of scipy.spatial.distance.
     coef: whether return coef(float) or matrix(array), default is True.
+    integrate: decide how to merge data of label and its neighbors, default is 'mean'.
+        Options: 'max': keep the max metric as the result.
+            'mean': use mean metric as the result.
+            'min': keep the min metric as the result.
     doing_zscore: whether doing zscore to data or not.
 
     Returns
@@ -342,6 +346,8 @@ def cdist_mean_adj(data, labels, metric='euclidean', coef=True, doing_zscore=Fal
         print('Doing zscore to data.')
         np.nan_to_num(zscore(data, axis=1))
 
+    assert integrate in ['min', 'max', 'mean'], "integrate could only be one of ['min', 'max', 'mean']."
+
     # here we use unique labels for loop instead of max label number, to avoid error
     # caused by discontinuity labels, which may lead to nan in result.
     label_list = np.unique(labels)
@@ -349,23 +355,33 @@ def cdist_mean_adj(data, labels, metric='euclidean', coef=True, doing_zscore=Fal
     time_point = np.shape(data)[-1]
     data_mean = np.zeros((label_number, time_point), dtype=np.float64)
 
-    faces = SurfaceGeometry('fsaverage5', 'lh', 'inflated').faces
-    label_faces = mk_label_adjfaces(labels, faces)
-
     for i, label in enumerate(label_list):
         data_vertices = data[np.where(labels == label)]
         data_mean[i] = np.mean(data_vertices, axis=0)
 
-    cdist_map_label = np.nan_to_num(cdist(data_mean, data_mean, metric=metric))
-
     # get neighbor of labels
+    faces = SurfaceGeometry('fsaverage5', 'lh', 'inflated').faces
+    label_faces = mk_label_adjfaces(labels, faces)
+    label_neighbor = faces_to_dict(label_faces)
+    cdist_map = np.zeros(label_number, dtype=np.float64)
 
+    for i, label in enumerate(label_list):
+        data_label = data_mean[[label_list.index(label)]]
+        data_neighbors = data_mean[[label_list.index(l) for l in label_neighbor[label]]]
+        print('shape of data_neighbors: {}'.format(data_neighbors.shape))
+        cdist_map_neighbor = np.nan_to_num(cdist(data_label, data_neighbors, metric=metric))
+
+        if integrate == 'max':
+            cdist_map[i] = np.max(cdist_map_neighbor)
+        elif integrate == 'min':
+            cdist_map[i] = np.min(cdist_map_neighbor)
+        else:
+            cdist_map[i] = np.mean(cdist_map_neighbor)
 
     if coef:
         # Use the mean of upper triangle in cdist matrix as cdist coef.
-        cdist_coef_label = np.mean(cdist_map_label[np.triu_indices_from(cdist_map_label, k=1)])
-        return cdist_coef_label
-    return cdist_map_label
+        return np.mean(cdist_map)
+    return cdist_map
 
 
 def silhouette_coef(data, labels, mask=None):
