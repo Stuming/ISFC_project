@@ -349,7 +349,7 @@ def mk_label_adjmatrix(label_image, adjmatrix):
     return label_adjmatrix
 
 
-def mk_label_adjfaces(label_image, faces):
+def mk_label_adjfaces(label_image, faces, mask=None):
     """
     Calculate faces of labels in label_image, based on faces of vertexes.
 
@@ -357,6 +357,7 @@ def mk_label_adjfaces(label_image, faces):
     ----------
     label_image: labels of vertexes, shape = (n, ).
     faces: faces of vertexes, its shape depends on surface, shape = (m, 3).
+    mask: binary array, 1 for region of interest and 0 for others, shape = (n_vertexes,).
 
     Returns
     -------
@@ -369,8 +370,20 @@ def mk_label_adjfaces(label_image, faces):
     label_faces = np.empty((0, 3))
     for column in label_faces_rde:
         if np.unique(column).shape[0] != 1:
-            label_faces = np.append(label_faces, column, axis=0)  # keep face elements only
-    return np.array(label_faces)
+            label_faces = np.append(label_faces, [column], axis=0)  # keep face elements only
+    label_faces = np.array(label_faces)
+
+    if mask:
+        # get different label number before and after mask as the droped label.
+        label_droped = np.setdiff1d(label_image, label_image[np.where(mask == 1)])
+
+        index = []
+        for label in label_droped:
+            index = np.concatenate([index, np.where(label_faces == label)[0]])
+
+        index = np.unique(index).astype(np.int)
+        label_faces = np.delete(label_faces, index, axis=0)
+    return label_faces
 
 
 def concat_coords_to_data(data, coords, w1=1, w2=1):
