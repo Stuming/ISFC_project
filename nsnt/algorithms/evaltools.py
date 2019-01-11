@@ -8,7 +8,7 @@ from scipy.spatial.distance import cdist
 
 from nsnt.algorithms.fctools import wsfc
 from nsnt.utils.utils import apply_1d_mask
-from nsnt.utils.adj_tools import nonconnected_labels, SurfaceGeometry, mk_label_adjfaces, faces_to_dict
+from nsnt.utils.adj_tools import nonconnected_labels, mk_label_adjfaces, faces_to_dict
 
 
 def ari(labels1, labels2, mask=None):
@@ -320,7 +320,7 @@ def cdist_max(data, labels, metric='euclidean', coef=True, doing_zscore=False):
     return cdist_map_label
 
 
-def cdist_adj(data, labels, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
+def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
     """
     Calculate euclidean distance coefficient between label and its neighbors,
     based on its mean data.
@@ -329,6 +329,7 @@ def cdist_adj(data, labels, metric='euclidean', coef=True, integrate='mean', doi
     ----------
     data: time series, shape = [n_samples, n_features].
     labels: cluster labels, shape = [n_samples].
+    label_faces: Triangle meshes of labels. 2d array of shape (n_meshes, 3)
     metric: measurement, see help of scipy.spatial.distance.
     coef: whether return coef(float) or matrix(array), default is True.
     integrate: decide how to merge data of label and its neighbors, default is 'mean'.
@@ -350,7 +351,7 @@ def cdist_adj(data, labels, metric='euclidean', coef=True, integrate='mean', doi
 
     # here we use unique labels for loop instead of max label number, to avoid error
     # caused by discontinuity labels, which may lead to nan in result.
-    label_list = np.unique(labels)
+    label_list = list(np.unique(labels))
     label_number = np.shape(label_list)[0]
     time_point = np.shape(data)[-1]
     data_mean = np.zeros((label_number, time_point), dtype=np.float64)
@@ -360,8 +361,6 @@ def cdist_adj(data, labels, metric='euclidean', coef=True, integrate='mean', doi
         data_mean[i] = np.mean(data_vertices, axis=0)
 
     # get neighbor of labels
-    faces = SurfaceGeometry('fsaverage5', 'lh', 'inflated').faces
-    label_faces = mk_label_adjfaces(labels, faces)
     label_neighbor = faces_to_dict(label_faces)
     cdist_map = np.zeros(label_number, dtype=np.float64)
 
