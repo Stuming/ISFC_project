@@ -373,7 +373,7 @@ def mk_label_adjfaces(label_image, faces, mask=None):
             label_faces = np.append(label_faces, [column], axis=0)  # keep face elements only
     label_faces = np.array(label_faces)
 
-    if mask:
+    if mask is not None:
         # get different label number before and after mask as the droped label.
         label_droped = np.setdiff1d(label_image, label_image[np.where(mask == 1)])
 
