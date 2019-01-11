@@ -1,28 +1,39 @@
 import os
 
+import numpy as np
 import nibabel as nib
 
 # TODO specify this function
-# TODO def load_file(filepath): load file based on postfix
+# TODO def save_data function for saving data.
 
 
-def load_imgfile(filepath):
-    """Load brain image file, the postfix should be one of ('mgz','mgh','nii','nii.gz')."""
-    if not os.path.isfile(filepath):
-        raise Exception("File does not exist, please check the path: %s" % filepath)
-    if not os.path.basename(filepath).endswith(("mgz", "mgh", "nii", "nii.gz")):
-        raise Exception("File suffix should be one of ('mgz', 'mgh', 'nii', 'nii.gz').")
-    f = nib.load(filepath)
-    return f
+def load_data(filepath, npz_key='arr_0'):
 
+    assert os.path.isfile(filepath), '"filepath" is invalid, please check.'
 
-def load_textfile(filepath):
-    """Load text like file, such as global.waveform.dat. """
-    if not os.path.isfile(filepath):
-        raise Exception("File does not exist, please check path: %s" % filepath)
-    with open(filepath, "r") as f:
-        data = f.readlines()
-    return data
+    print("Loading: %s" % filepath)
+    filename = os.path.basename(filepath)
+    nifti_file = ('.mgz', '.mgh', '.nii', '.nii.gz')
+
+    if filename.endswith(nifti_file):
+        data = nib.load(filepath).get_data()
+        if data.ndim > 2 and (data.shape[1] == 1, data.shape[2] == 1):
+            return data[:, 0, 0]
+        return data
+
+    if filename.endswith('.annot'):
+        data = nib.freesurfer.read_annot(filepath)[0]
+        return data
+
+    if filename.endswith('.npz'):
+        data = np.load(filepath)[npz_key]
+        return data
+
+    if filename.endswith('.label.gii'):
+        data = nib.load(filepath).darrays[0].data
+        return data
+
+    raise ValueError('filepath is invalid')
 
 
 # TODO specify this function
