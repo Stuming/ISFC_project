@@ -32,6 +32,9 @@ class SurfaceGeometry(object):
         Edges of brain surface meshes.
     adjmatrix: 2d array of shape (n_vertexes, n_vertexes)
         Adjacency matrix that reflect linkages of vertices.
+    mask: 1d array of shape (n_vertexes,) | None
+        Apply mask to other property(coords, faces, edges, adjmatrix) if it's not None.
+        1 for vertex you want to keep, others means not needed.
     """
     def __init__(self, subj_id, hemi, surf, subjects_dir=None):
         """
@@ -57,8 +60,7 @@ class SurfaceGeometry(object):
         coords, faces = self._load_geo()
         self._coords = coords
         self._faces = faces
-        self._edges = None
-        self._adjmatrix = None
+        self._mask = None
 
     def _load_geo(self):
         """
@@ -81,42 +83,81 @@ class SurfaceGeometry(object):
         return coords, faces
 
     @property
-    def coords(self, mask=None):
-        """Get the coordinates of vertices.
+    def coords(self):
+        """
+        Get the coordinates of vertices.
         If mask is not None, then apply mask on result,
-            which may change shape of output."""
-        coords = self._coords
-        if mask:
-            coords = coords[np.where(mask == 1)]
-        return coords
+            which may change shape of output.
+        """
+        if self._mask is not None:
+            return self._coords[np.where(self._mask == 1)]
+        return self._coords
 
     @property
-    def faces(self, mask=None):
-        """Get the triangle meshes of brain surface.
+    def faces(self):
+        """
+        Get the triangle meshes of brain surface.
         If mask is not None, then apply mask on result,
-            which may change shape of output."""
-        faces = _apply_mask(self._faces, mask=mask)
-        return faces
+            which may change shape of output.
+        """
+        if self._mask is not None:
+            return _apply_mask(self._faces, mask=self._mask)
+        return self._faces
 
     @property
-    def edges(self, mask=None):
-        """Get linkages of vertices.
+    def edges(self):
+        """
+        Get linkages of vertices.
         If mask is not None, then apply mask on result,
-            which may change shape of output."""
-        if not self._edges:
-            self._edges = faces_to_edges(self._faces)
-        edges = _apply_mask(self._edges, mask=mask)
+            which may change shape of output.
+        """
+        edges = faces_to_edges(self._faces)
+        if self._mask is not None:
+            return _apply_mask(edges, mask=self._mask)
         return edges
 
     @property
-    def adjmatrix(self, mask=None):
-        """Get adjacency matrix of vertices.
+    def adjmatrix(self):
+        """
+        Get adjacency matrix of vertices.
         If mask is not None, then apply mask on result,
-            which may change shape of output."""
-        if not self._adjmatrix:
-            self._adjmatrix = faces_to_adjmatrix(self._faces)
-        adjm = _apply_mask_on_adjm(self._adjmatrix, mask=mask)
+            which may change shape of output.
+        """
+        adjm = faces_to_adjmatrix(self._faces)
+        if self._mask is not None:
+            return _apply_mask_on_adjm(adjm, mask=self._mask)
         return adjm
+
+    @property
+    def mask(self):
+        """Return the saved mask, default is None."""
+        return self._mask
+
+    @mask.setter
+    def mask(self, mask):
+        """
+        Apply mask to the property of SurfaceGeometry.
+        Mask will be reshaped to (n,).
+        This method has no return, it works when accessing the property.
+        If mask is not needed, set it to None.
+        """
+        if mask is None:
+            self._mask = None
+            return None
+
+        if not (isinstance(mask, np.ndarray) or isinstance(mask, list)):
+            raise TypeError('The type of mask could only be ndarray or list')
+        mask = np.reshape(mask, (-1))
+        self._mask = mask
+
+    def apply_mask(self, mask):
+        """
+        Apply mask to the property of SurfaceGeometry.
+        Mask will be reshaped to (n,).
+        This method has no return, it works when accessing the property.
+        If mask is not needed, set it to None.
+        """
+        self.mask = mask
 
     @staticmethod
     def _get_subjects_dir(subjects_dir=None):
@@ -146,7 +187,7 @@ def _apply_mask(data, mask=None):
     ------
     result: return data if no mask, else return masked data, and its shape may change.
     """
-    if not mask:
+    if mask is None:
         return data
 
     mask_1dim = np.reshape(mask, (-1))
@@ -172,7 +213,7 @@ def _apply_mask_on_adjm(adjm, mask=None):
     ------
     adjm: return data if no mask, else return masked adjmatrix, and its shape may change.
     """
-    if not mask:
+    if mask is None:
         return adjm
 
     adjm = np.delete(adjm, mask, axis=0)
