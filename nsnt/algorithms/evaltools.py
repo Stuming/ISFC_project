@@ -281,7 +281,7 @@ def cdist_mean(data, labels, metric='euclidean', coef=True, doing_zscore=False):
     return cdist_map_label
 
 
-def cdist_max(data, labels, metric='euclidean', coef=True, doing_zscore=False):
+def mean_data_cdist_max(data, labels, metric='euclidean', coef=True, doing_zscore=False):
     """
     Calculate euclidean distance coefficient of labels based on its mean data.
 
@@ -320,7 +320,7 @@ def cdist_max(data, labels, metric='euclidean', coef=True, doing_zscore=False):
     return cdist_map_label
 
 
-def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
+def mean_data_cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
     """
     Calculate euclidean distance coefficient between label and its neighbors,
     based on its mean data.
@@ -376,6 +376,68 @@ def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrat
             cdist_map[i] = np.min(cdist_map_neighbor)
         else:
             cdist_map[i] = np.mean(cdist_map_neighbor)
+
+    if coef:
+        # Use the mean of upper triangle in cdist matrix as cdist coef.
+        return np.mean(cdist_map)
+    return cdist_map
+
+
+def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
+    """
+    Calculate euclidean distance coefficient between label and its neighbors,
+    based on its mean data.
+
+    Parameters
+    ----------
+    data: time series, shape = [n_samples, n_features].
+    labels: cluster labels, shape = [n_samples].
+    label_faces: Triangle meshes of labels. 2d array of shape (n_meshes, 3)
+    metric: measurement, see help of scipy.spatial.distance.
+    coef: whether return coef(float) or matrix(array), default is True.
+    integrate: decide how to merge data of label and its neighbors, default is 'mean'.
+        Options: 'max': keep the max metric as the result.
+            'mean': use mean metric as the result.
+            'min': keep the min metric as the result.
+    doing_zscore: whether doing zscore to data or not.
+
+    Returns
+    -------
+    cdist_coef_label: float, reflects mean dissimilarity, based on metric.
+    cdist_map_label: matrix, reflects dissimilarity of all label pair, based on metric.
+    """
+    if doing_zscore:
+        print('Doing zscore to data.')
+        np.nan_to_num(zscore(data, axis=1))
+
+    assert integrate in ['min', 'max', 'mean'], "integrate could only be one of ['min', 'max', 'mean']."
+
+    # here we use unique labels for loop instead of max label number, to avoid error
+    # caused by discontinuity labels, which may lead to nan in result.
+    label_list = list(np.unique(labels))
+    label_number = np.shape(label_list)[0]
+
+    # get neighbor of labels
+    label_neighbor = faces_to_dict(label_faces)
+    cdist_map = np.zeros(label_number, dtype=np.float64)
+
+    for i, label in enumerate(label_list):
+        data_label = data[[label_list.index(label)]]
+        print('shape of data_label: {}'.format(data_label.shape))
+        cdist_neighbor = []
+        for neighbor in label_neighbor[label]:
+            data_neighbor = data[np.where(labels == neighbor)[0]]
+            print('shape of data_neighbor: {}'.format(data_neighbor.shape))
+            cdist_map_neighbor = np.nan_to_num(cdist(data_label, data_neighbor, metric=metric))
+
+            # TODO change np.mean(data) to np.mean(data**2)
+            cdist_neighbor.append(np.mean(cdist_map_neighbor))
+        if integrate == 'max':
+            cdist_map[i] = np.max(cdist_neighbor)
+        elif integrate == 'min':
+            cdist_map[i] = np.min(cdist_neighbor)
+        else:
+            cdist_map[i] = np.mean(cdist_neighbor)
 
     if coef:
         # Use the mean of upper triangle in cdist matrix as cdist coef.
