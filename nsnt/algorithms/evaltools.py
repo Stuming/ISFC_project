@@ -167,16 +167,23 @@ def dice_matrix(labels1, labels2):
 
     Notes
     -----
-    1. the max label number in labels should be assigned to the medial wall.
-    2. data with the max label number will be omitted.
+    1. the label 0 in labels should be assigned to the medial wall, and it will be ommited.
     """
     from scipy.spatial.distance import dice
 
-    row_num, column_num = np.int(np.max(labels1)), np.int(np.max(labels2))
+    label_list1 = np.unique(labels1)
+    label_list2 = np.unique(labels2)
+
+    # label 0 will not be concerned.
+    label_list1 = label_list1[np.where(label_list1 != 0)]
+    label_list2 = label_list2[np.where(label_list2 != 0)]
+
+    row_num, column_num = np.shape(label_list1)[0], np.shape(label_list2)[0]
+
     dice_mat = np.zeros((row_num, column_num))
-    for i in range(row_num):
-        for j in range(column_num):
-            dice_mat[i, j] = 1 - dice(labels1 == i, labels2 == j)  # dice() measures dice dissimilarity
+    for i, l1 in enumerate(label_list1):
+        for j, l2 in enumerate(label_list2):
+            dice_mat[i, j] = 1 - dice(labels1 == l1, labels2 == l2)  # dice() measures dice dissimilarity
     return np.nan_to_num(dice_mat)
 
 
@@ -383,7 +390,7 @@ def mean_data_cdist_adj(data, labels, label_faces, metric='euclidean', coef=True
     return cdist_map
 
 
-def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrate='mean', doing_zscore=False):
+def cdist_adj(data, labels, label_faces, metric='euclidean', integrate='mean', label_size_count=False, doing_zscore=False):
     """
     Calculate euclidean distance coefficient between label and its neighbors,
     based on its mean data.
@@ -394,11 +401,11 @@ def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrat
     labels: cluster labels, shape = [n_samples].
     label_faces: Triangle meshes of labels. 2d array of shape (n_meshes, 3)
     metric: measurement, see help of scipy.spatial.distance.
-    coef: whether return coef(float) or matrix(array), default is True.
     integrate: decide how to merge data of label and its neighbors, default is 'mean'.
         Options: 'max': keep the max metric as the result.
             'mean': use mean metric as the result.
             'min': keep the min metric as the result.
+    label_size_count: whether balance size of label or not.
     doing_zscore: whether doing zscore to data or not.
 
     Returns
@@ -416,12 +423,16 @@ def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrat
     # caused by discontinuity labels, which may lead to nan in result.
     label_list = list(np.unique(labels))
     label_number = np.shape(label_list)[0]
+    label_size = np.zeros_like(label_list, dtype=np.int)
 
     # get neighbor of labels
     label_neighbor = faces_to_dict(label_faces)
     cdist_map = np.zeros(label_number, dtype=np.float64)
 
     for i, label in enumerate(label_list):
+        vert_list = np.array(np.where(labels == label))[0]
+        label_size[i] = vert_list.shape[0]
+
         data_label = data[[label_list.index(label)]]
         print('shape of data_label: {}'.format(data_label.shape))
         cdist_neighbor = []
@@ -439,10 +450,9 @@ def cdist_adj(data, labels, label_faces, metric='euclidean', coef=True, integrat
         else:
             cdist_map[i] = np.mean(cdist_neighbor)
 
-    if coef:
-        # Use the mean of upper triangle in cdist matrix as cdist coef.
-        return np.mean(cdist_map)
-    return cdist_map
+    if label_size_count:
+        return np.sum(label_size * cdist_map) / np.sum(label_size)
+    return np.mean(cdist_map)
 
 
 def silhouette_coef(data, labels, mask=None):
